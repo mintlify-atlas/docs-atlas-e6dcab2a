@@ -94,7 +94,9 @@ The API supports multiple AI models organized by capability tier:
 ### Swift Tier (Free)
 - `google/gemma-3-12b-it:free` (default)
 - `google/gemma-3-27b-it:free`
+- `google/gemma-3-4b-it:free`
 - `meta-llama/llama-3.3-70b-instruct:free`
+- `meta-llama/llama-3.1-405b-instruct:free`
 
 ### Balanced Tier
 - `openai/gpt-4o-mini`
@@ -105,8 +107,98 @@ The API supports multiple AI models organized by capability tier:
 - `anthropic/claude-sonnet-4`
 - `openai/gpt-4o`
 - `google/gemini-2.5-pro-preview`
+- `anthropic/claude-opus-4`
 
 You can retrieve the full list via the `/api/models` endpoint or specify a model in the request body using the `model` parameter.
+
+## GET /api/models
+
+Returns the list of available AI models and the default model.
+
+### Response
+
+<ResponseField name="models" type="array">
+  Array of model objects, each containing:
+  - `id` (string): Model identifier for use in API requests
+  - `name` (string): Human-readable model name
+  - `tier` (string): Model tier - "swift", "balanced", or "advanced"
+</ResponseField>
+
+<ResponseField name="default" type="string">
+  The default model ID used when no model is specified
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "models": [
+    {
+      "id": "google/gemma-3-12b-it:free",
+      "name": "Gemma 3 12B",
+      "tier": "swift"
+    },
+    {
+      "id": "openai/gpt-4o-mini",
+      "name": "GPT-4o Mini",
+      "tier": "balanced"
+    },
+    {
+      "id": "anthropic/claude-sonnet-4",
+      "name": "Claude Sonnet 4",
+      "tier": "advanced"
+    }
+  ],
+  "default": "google/gemma-3-12b-it:free"
+}
+```
+
+## GET /api/health
+
+Health check endpoint for monitoring application status. Useful for uptime monitoring services and deployment health checks.
+
+### Response
+
+<ResponseField name="status" type="string">
+  Application health status - "healthy" or "degraded"
+</ResponseField>
+
+<ResponseField name="api_key_configured" type="boolean">
+  Whether the OPENROUTER_API_KEY environment variable is configured
+</ResponseField>
+
+<ResponseField name="api_key_length" type="number">
+  Length of the configured API key (0 if not set)
+</ResponseField>
+
+<ResponseField name="warning" type="string">
+  Warning message if status is "degraded" (only present when API key is not configured)
+</ResponseField>
+
+### Example Response (Healthy)
+
+```json
+{
+  "status": "healthy",
+  "api_key_configured": true,
+  "api_key_length": 64
+}
+```
+
+### Example Response (Degraded)
+
+```json
+{
+  "status": "degraded",
+  "api_key_configured": false,
+  "api_key_length": 0,
+  "warning": "OPENROUTER_API_KEY is not set"
+}
+```
+
+<Info>
+  Use this endpoint for Railway uptime monitoring to keep your free-tier app awake. See the [Deployment Guide](/guides/deployment#keeping-railway-apps-awake) for details.
+</Info>
 
 ## Next Steps
 
