@@ -1,0 +1,93 @@
+{
+  "projectType": "saas",
+  "projectName": "SeanceAI",
+  "projectDescription": "An AI-powered platform for having authentic conversations with 60+ historical figures through immersive roleplay experiences.",
+  "theme": "almond",
+  "primaryColor": "#D4AF37",
+  "lightColor": "#F5E6D3",
+  "darkColor": "#1A1A1A",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "features"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/seance-mode",
+              "features/dinner-party-mode",
+              "features/historical-figures",
+              "features/conversation-history"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Setup & Deployment",
+            "pages": [
+              "guides/installation",
+              "guides/configuration",
+              "guides/deployment"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "guides/tech-stack",
+              "guides/adding-figures",
+              "guides/contributing"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api/overview",
+              "api/figures",
+              "api/chat",
+              "api/dinner-party",
+              "api/suggestions"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Seance Mode: One-on-one conversations with historical figures",
+    "Dinner Party Mode: Multi-guest conversations with 2-5 figures",
+    "60+ Historical Figures: From ancient world to modern era",
+    "Authentic Roleplay: Era-appropriate knowledge and personalities",
+    "AI-powered Suggestions: Contextual follow-up questions",
+    "Conversation Management: Save, export, and resume conversations",
+    "Multiple AI Models: Free and premium models with automatic fallback",
+    "Streaming Responses: Real-time conversation experience"
+  ],
+  "publicApiSurface": [
+    "GET /api/figures - List all historical figures",
+    "GET /api/figures/<id> - Get single figure data",
+    "GET /api/models - List available AI models",
+    "GET /api/health - Health check endpoint",
+    "POST /api/chat - Send message to historical figure",
+    "POST /api/chat/stream - Streaming chat with SSE",
+    "POST /api/dinner-party/chat - Multi-figure conversation",
+    "POST /api/dinner-party/chat/stream - Streaming dinner party",
+    "POST /api/suggestions - Generate contextual follow-up questions",
+    "GET /api/dinner-party/combos - Get curated guest combinations"
+  ]
+}
