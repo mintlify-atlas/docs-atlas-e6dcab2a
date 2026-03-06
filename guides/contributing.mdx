@@ -1,0 +1,516 @@
+---
+title: 'Contributing Guidelines'
+description: 'How to contribute to SeanceAI - adding figures, improving features, and more'
+---
+
+## Welcome Contributors!
+
+We welcome contributions to SeanceAI! Whether you want to add new historical figures, improve conversation quality, enhance the UI/UX, fix bugs, or write documentation, your contributions help make SeanceAI better for everyone.
+
+## Ways to Contribute
+
+### 1. Add New Historical Figures
+
+Expand the roster of historical minds users can converse with.
+
+**What You'll Do:**
+- Research historical figures and their personalities
+- Add figure data to `figures.py`
+- Create SVG portraits (optional)
+- Test conversations for authenticity
+
+**See**: [Adding Historical Figures Guide](/guides/adding-figures) for detailed instructions.
+
+### 2. Improve Conversation Quality
+
+Enhance how figures respond and interact.
+
+**Ideas:**
+- Refine existing figure personalities and beliefs
+- Improve the `FIGURE_PROMPT_TEMPLATE` for better roleplay
+- Enhance suggestion generation logic
+- Optimize conversation context handling
+
+### 3. Enhance UI/UX
+
+Make the interface more beautiful and user-friendly.
+
+**Areas:**
+- Visual design improvements
+- Mobile responsiveness
+- Accessibility features
+- Animation and transitions
+- New UI components
+
+### 4. Fix Bugs
+
+Help keep SeanceAI running smoothly.
+
+**Process:**
+- Check existing [GitHub Issues](https://github.com/ARJUNVARMA2000/Seance_AI/issues)
+- Reproduce the bug locally
+- Fix and test thoroughly
+- Submit a pull request
+
+### 5. Optimize Performance
+
+Improve speed, efficiency, and reliability.
+
+**Ideas:**
+- Reduce API calls and costs
+- Improve streaming performance
+- Optimize model selection logic
+- Enhance caching strategies
+- Reduce frontend bundle size
+
+### 6. Write Documentation
+
+Help others understand and use SeanceAI.
+
+**Needs:**
+- Improve setup instructions
+- Add troubleshooting guides
+- Create video tutorials
+- Write blog posts about features
+- Translate documentation
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.11 or higher
+- Git
+- A GitHub account
+- An OpenRouter API key ([Get one free](https://openrouter.ai/))
+
+### Fork and Clone
+
+<Steps>
+
+### Step 1: Fork the Repository
+
+Click the **Fork** button at the top of the [SeanceAI repository](https://github.com/ARJUNVARMA2000/Seance_AI).
+
+### Step 2: Clone Your Fork
+
+```bash
+git clone https://github.com/YOUR_USERNAME/Seance_AI.git
+cd Seance_AI
+```
+
+### Step 3: Add Upstream Remote
+
+```bash
+git remote add upstream https://github.com/ARJUNVARMA2000/Seance_AI.git
+```
+
+### Step 4: Create a Virtual Environment
+
+```bash
+python -m venv venv
+
+# On Windows:
+venv\Scripts\activate
+
+# On macOS/Linux:
+source venv/bin/activate
+```
+
+### Step 5: Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Step 6: Set Up Environment Variables
+
+```bash
+echo OPENROUTER_API_KEY=your_key_here > .env
+```
+
+### Step 7: Run the Development Server
+
+```bash
+python app.py
+```
+
+Navigate to `http://localhost:5000` to see your local instance running.
+
+</Steps>
+
+## Development Workflow
+
+### Creating a Feature Branch
+
+Always create a new branch for your changes:
+
+```bash
+git checkout -b feature/amazing-feature
+```
+
+**Branch Naming Conventions:**
+- `feature/` - New features (e.g., `feature/add-newton`)
+- `fix/` - Bug fixes (e.g., `fix/streaming-error`)
+- `docs/` - Documentation (e.g., `docs/setup-guide`)
+- `refactor/` - Code improvements (e.g., `refactor/api-calls`)
+- `style/` - UI/CSS changes (e.g., `style/mobile-responsive`)
+
+### Making Changes
+
+1. **Make your changes** to the codebase
+2. **Test thoroughly** - ensure everything works as expected
+3. **Follow code style** - see Code Style Guidelines below
+4. **Write clear commit messages** - see Commit Message Guidelines below
+
+### Testing Your Changes
+
+#### Manual Testing
+
+Test your changes in multiple scenarios:
+
+```bash
+python app.py
+```
+
+**Test Checklist:**
+- [ ] Basic functionality works
+- [ ] Edge cases are handled
+- [ ] Error messages are clear
+- [ ] Mobile/responsive design works
+- [ ] No console errors
+- [ ] Streaming responses work
+- [ ] API fallback logic functions
+
+#### API Testing
+
+Test API endpoints with curl:
+
+```bash
+# Test chat endpoint
+curl -X POST http://localhost:5000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "figure_id": "einstein",
+    "message": "Hello!",
+    "history": []
+  }'
+
+# Test streaming endpoint
+curl -X POST http://localhost:5000/api/chat/stream \
+  -H "Content-Type: application/json" \
+  -d '{
+    "figure_id": "einstein",
+    "message": "What is relativity?",
+    "history": []
+  }'
+```
+
+### Committing Changes
+
+```bash
+git add .
+git commit -m "Add amazing feature"
+```
+
+#### Commit Message Guidelines
+
+Write clear, descriptive commit messages:
+
+**Format:**
+```
+<type>: <short description>
+
+<optional detailed explanation>
+```
+
+**Types:**
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `docs:` - Documentation changes
+- `style:` - UI/CSS changes
+- `refactor:` - Code improvements without changing functionality
+- `perf:` - Performance improvements
+- `test:` - Adding or updating tests
+
+**Examples:**
+
+✅ **Good:**
+```
+feat: Add Isaac Newton as historical figure
+
+Added Newton with detailed personality focusing on his work in physics,
+mathematics, and alchemy. Includes authentic speaking style and era-appropriate
+knowledge cutoff at 1727.
+```
+
+✅ **Good:**
+```
+fix: Handle rate limit errors gracefully in streaming mode
+
+Improved error handling when OpenRouter API returns 429 status.
+Now falls back to alternative models automatically.
+```
+
+❌ **Bad:**
+```
+fixed stuff
+```
+
+❌ **Bad:**
+```
+Updated files
+```
+
+### Pushing Changes
+
+```bash
+git push origin feature/amazing-feature
+```
+
+### Opening a Pull Request
+
+<Steps>
+
+### Step 1: Navigate to Your Fork on GitHub
+
+Go to `https://github.com/YOUR_USERNAME/Seance_AI`
+
+### Step 2: Click "Compare & Pull Request"
+
+GitHub will automatically detect your pushed branch.
+
+### Step 3: Write a Clear PR Description
+
+Use this template:
+
+```markdown
+## Summary
+Brief description of what this PR does.
+
+## Changes
+- Added feature X
+- Fixed bug Y
+- Improved performance of Z
+
+## Testing
+Describe how you tested these changes:
+- Tested on Chrome, Firefox, Safari
+- Verified API endpoints work correctly
+- Tested with multiple historical figures
+
+## Screenshots (if applicable)
+[Add screenshots of UI changes]
+
+## Related Issues
+Closes #123
+```
+
+### Step 4: Request Review
+
+Tag maintainers or relevant contributors for review.
+
+### Step 5: Address Feedback
+
+Respond to review comments and make requested changes.
+
+</Steps>
+
+## Code Style Guidelines
+
+### Python Code Style
+
+Follow **PEP 8** conventions:
+
+```python
+# Good: Clear function names, docstrings, type hints
+def get_system_prompt(figure_id: str) -> str:
+    """
+    Generate system prompt for a historical figure.
+    
+    Args:
+        figure_id: Unique identifier for the figure
+        
+    Returns:
+        Formatted system prompt string
+    """
+    figure = HISTORICAL_FIGURES.get(figure_id)
+    if not figure:
+        return None
+    return FIGURE_PROMPT_TEMPLATE.format(**figure)
+
+# Bad: Unclear names, no documentation
+def gsp(fid):
+    f = HISTORICAL_FIGURES.get(fid)
+    if not f:
+        return None
+    return FIGURE_PROMPT_TEMPLATE.format(**f)
+```
+
+**Key Points:**
+- Use meaningful variable names
+- Add docstrings to functions
+- Use type hints where applicable
+- Keep functions focused and modular
+- Add comments for complex logic
+- Maximum line length: 100 characters
+
+### JavaScript Code Style
+
+```javascript
+// Good: Clear, modern ES6+ syntax
+const sendMessage = async (figureId, message, history) => {
+    const response = await fetch('/api/chat/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ figure_id: figureId, message, history })
+    });
+    return response;
+};
+
+// Bad: Unclear naming, old syntax
+var sm = function(f, m, h) {
+    return fetch('/api/chat/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ figure_id: f, message: m, history: h })
+    });
+};
+```
+
+**Key Points:**
+- Use `const` and `let`, not `var`
+- Use arrow functions
+- Use async/await over callbacks
+- Use meaningful variable names
+- Add comments for complex logic
+
+### CSS Code Style
+
+```css
+/* Good: Clear naming, organized properties */
+.chat-message {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+/* Bad: Unclear naming, disorganized */
+.cm {
+    background-color: #1a1a1a;
+    padding: 12px;
+    border-radius: 8px;
+    display: flex;
+    gap: 8px;
+    flex-direction: column;
+}
+```
+
+**Key Points:**
+- Use CSS custom properties (variables)
+- Organize properties logically
+- Use semantic class names
+- Follow existing naming conventions
+
+## Special Contribution Types
+
+### Adding Historical Figures
+
+See the complete [Adding Historical Figures Guide](/guides/adding-figures) for detailed instructions.
+
+**Quick Checklist:**
+- [ ] Researched historical accuracy
+- [ ] Added to `HISTORICAL_FIGURES` in `figures.py`
+- [ ] Created SVG portrait (optional)
+- [ ] Wrote 5 engaging starter questions
+- [ ] Tested for era-appropriate responses
+- [ ] Verified figure stays in character
+
+### Improving AI Prompts
+
+When modifying `FIGURE_PROMPT_TEMPLATE` or figure prompts:
+
+1. **Test with multiple figures** - Ensure changes work universally
+2. **Maintain era-appropriate responses** - Don't break historical accuracy
+3. **Test edge cases** - Modern concepts, controversial topics
+4. **Document changes** - Explain why the change improves responses
+
+### UI/UX Improvements
+
+When making visual changes:
+
+1. **Test on multiple devices** - Desktop, tablet, mobile
+2. **Test in multiple browsers** - Chrome, Firefox, Safari, Edge
+3. **Include screenshots** - Before and after in PR
+4. **Maintain accessibility** - Color contrast, keyboard navigation
+5. **Follow existing design system** - Colors, spacing, typography
+
+## Pull Request Review Process
+
+### What Reviewers Look For
+
+1. **Code Quality**
+   - Follows style guidelines
+   - Well-documented
+   - No unnecessary complexity
+
+2. **Functionality**
+   - Works as intended
+   - Handles edge cases
+   - No breaking changes
+
+3. **Testing**
+   - Thoroughly tested
+   - No console errors
+   - Works across browsers/devices
+
+4. **Historical Accuracy** (for figure additions)
+   - Era-appropriate knowledge
+   - Authentic personality
+   - Documented beliefs
+
+### Review Timeline
+
+Maintainers aim to review PRs within:
+- **Bug fixes**: 1-3 days
+- **New features**: 3-7 days
+- **Major changes**: 1-2 weeks
+
+## Community Guidelines
+
+### Code of Conduct
+
+- **Be respectful** - Treat all contributors with respect
+- **Be constructive** - Provide helpful feedback
+- **Be patient** - Maintainers are volunteers
+- **Be collaborative** - Work together to improve SeanceAI
+
+### Getting Help
+
+- **GitHub Issues**: Report bugs or request features
+- **GitHub Discussions**: Ask questions or share ideas
+- **Pull Request Comments**: Discuss specific code changes
+
+## Recognition
+
+Contributors are recognized in:
+- **README.md** - Listed as contributors
+- **GitHub Contributors** - Automatically tracked
+- **Release Notes** - Credited for major contributions
+
+## Questions?
+
+If you have questions about contributing:
+
+1. Check existing [documentation](https://github.com/ARJUNVARMA2000/Seance_AI)
+2. Search [GitHub Discussions](https://github.com/ARJUNVARMA2000/Seance_AI/discussions)
+3. Open a new discussion
+4. Reach out to maintainers
+
+## Thank You!
+
+Every contribution, no matter how small, helps make SeanceAI better. Whether you're adding a single historical figure or implementing a major feature, your work is appreciated by the entire community.
+
+Happy contributing! ⭐

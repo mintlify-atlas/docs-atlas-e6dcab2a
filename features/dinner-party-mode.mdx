@@ -1,0 +1,382 @@
+---
+title: "Dinner Party Mode"
+description: "Host conversations with 2-5 historical figures at once for dynamic group discussions"
+---
+
+# Dinner Party Mode
+
+Dinner Party Mode transforms SeanceAI into an immersive group conversation experience. Gather 2-5 historical figures around a virtual table and watch them debate, agree, disagree, and build on each other's ideas in response to your questions.
+
+## Overview
+
+Imagine hosting a dinner party where Einstein debates quantum mechanics with Bohr, or Shakespeare discusses storytelling with da Vinci. Dinner Party Mode makes this possible through intelligent multi-guest AI conversations.
+
+<Info>
+  Each guest responds in their authentic voice, often reacting to and engaging with what other guests say, creating natural group dynamics.
+</Info>
+
+## How to Host a Dinner Party
+
+<Steps>
+  <Step title="Switch to Dinner Party Tab">
+    Click the "Dinner Party" tab in the navigation to access the guest selection view.
+  </Step>
+  
+  <Step title="Select Your Guests">
+    Choose 2-5 historical figures from the grid. You can:
+    - Select guests individually by clicking figure cards
+    - Use curated combinations for pre-designed dinner parties
+    - Mix and match figures from different eras and fields
+  </Step>
+  
+  <Step title="Start the Party">
+    Click "Start Dinner Party" once you have 2-5 guests selected. A candlelit table appears with your chosen figures.
+  </Step>
+  
+  <Step title="Ask a Question">
+    Pose a question or topic to the group. All guests will respond in turn, often building on or debating each other's points.
+  </Step>
+</Steps>
+
+## Guest Selection
+
+### Manual Selection
+
+- **Minimum guests**: 2
+- **Maximum guests**: 5
+- **Guest counter**: Shows "X/5 guests selected"
+- **Clear button**: Remove all selected guests and start over
+
+### Curated Combinations
+
+SeanceAI offers pre-designed dinner parties for different themes:
+
+<Accordion title="Philosophers">
+  The great thinkers debate the meaning of life
+  
+  **Guests**: Socrates, Marcus Aurelius, Gandhi, Aristotle, Pythagoras
+</Accordion>
+
+<Accordion title="Scientists">
+  Brilliant minds discuss the nature of reality
+  
+  **Guests**: Einstein, Marie Curie, Tesla, Ada Lovelace, Newton, Darwin, Hawking
+</Accordion>
+
+<Accordion title="Leaders">
+  Rulers and conquerors compare their legacies
+  
+  **Guests**: Julius Caesar, Cleopatra, Napoleon, Elizabeth I, Genghis Khan, Lincoln
+</Accordion>
+
+<Accordion title="Quantum Pioneers">
+  The founders of quantum mechanics debate reality
+  
+  **Guests**: Einstein, Bohr, Planck, Heisenberg, Schrödinger, Feynman
+</Accordion>
+
+<Accordion title="Computer Scientists">
+  Pioneers of computing and artificial intelligence
+  
+  **Guests**: Turing, Hopper, Katherine Johnson, McCarthy, Ritchie, von Neumann
+</Accordion>
+
+<Accordion title="Mathematical Geniuses">
+  The greatest mathematical minds in history
+  
+  **Guests**: Gauss, Euler, Riemann, Ramanujan, Emmy Noether, Gödel
+</Accordion>
+
+<Note>
+  More curated combinations include Artists, Revolutionaries, Astronomers, Biologists, Ancient Scholars, and more!
+</Note>
+
+## Conversation Dynamics
+
+### How Guests Respond
+
+When you ask a question, the AI generates responses for each guest that:
+
+1. **Stay in character** with authentic personalities and speaking styles
+2. **Address your question** directly from their historical perspective
+3. **React to each other** by agreeing, disagreeing, or building on others' points
+4. **Create group dynamics** with natural conversation flow
+
+### Response Format
+
+Guests respond in structured format:
+
+```
+[einstein]: *adjusts spectacles thoughtfully* Ah, what a fascinating question...
+
+[curie]: *sets down her tea cup* I must respectfully disagree with Albert on this point...
+
+[bohr]: *nods slowly* Both of you raise interesting perspectives. I believe...
+```
+
+**API Response**:
+
+```json
+{
+  "responses": [
+    {
+      "figure_id": "einstein",
+      "response": "*adjusts spectacles thoughtfully* Ah, what a fascinating question..."
+    },
+    {
+      "figure_id": "curie",
+      "response": "*sets down her tea cup* I must respectfully disagree..."
+    }
+  ],
+  "guests": [...]
+}
+```
+
+## API Integration
+
+### Get Curated Combinations
+
+**Endpoint**: `GET /api/dinner-party/combos`
+
+```javascript
+const combos = await fetch('/api/dinner-party/combos')
+  .then(r => r.json());
+
+console.log(combos.combos);
+// {
+//   "philosophers": {
+//     "name": "Philosophers",
+//     "description": "The great thinkers debate...",
+//     "guests": ["socrates", "aurelius", ...]
+//   },
+//   ...
+// }
+```
+
+### Send Dinner Party Message
+
+**Endpoint**: `POST /api/dinner-party/chat`
+
+```javascript
+const response = await fetch('/api/dinner-party/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    guests: ['einstein', 'bohr', 'heisenberg'],
+    message: 'What is the true nature of quantum reality?',
+    history: conversationHistory,
+    model: 'google/gemma-3-12b-it:free'
+  })
+});
+
+const data = await response.json();
+// Returns responses from each guest
+```
+
+### Streaming Responses
+
+**Endpoint**: `POST /api/dinner-party/chat/stream`
+
+```javascript
+const response = await fetch('/api/dinner-party/chat/stream', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    guests: ['einstein', 'bohr'],
+    message: 'Can you explain quantum entanglement?',
+    history: [],
+    model: 'google/gemma-3-12b-it:free'
+  })
+});
+
+// Read SSE stream
+const reader = response.body.getReader();
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  // Process streaming chunks
+}
+```
+
+### Get Contextual Suggestions
+
+**Endpoint**: `POST /api/dinner-party/suggestions`
+
+```javascript
+const suggestions = await fetch('/api/dinner-party/suggestions', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    guests: ['einstein', 'bohr', 'heisenberg'],
+    history: conversationHistory,
+    last_response: 'Recent discussion about quantum mechanics...'
+  })
+}).then(r => r.json());
+
+console.log(suggestions.suggestions);
+// ["What do you think?", "Tell us more!", "Do you agree?"]
+```
+
+<Info>
+  Suggestions are generated quickly (under 40 characters each) for smooth conversation flow.
+</Info>
+
+## Features
+
+### Conversation Management
+
+- **History tracking**: Maintains context across multiple exchanges
+- **Auto-save**: Conversations automatically saved to browser storage
+- **Resume**: Return to previous dinner parties from saved conversations
+
+### Controls & Sharing
+
+<CardGroup cols={2}>
+  <Card title="Share Party" icon="share-nodes">
+    Generate shareable links with full guest list and conversation history
+  </Card>
+  
+  <Card title="Copy Conversation" icon="copy">
+    Copy formatted conversation text including all guest responses
+  </Card>
+  
+  <Card title="Download" icon="download">
+    Export your dinner party as a .txt file
+  </Card>
+  
+  <Card title="Back to Selection" icon="arrow-left">
+    Choose new guests for a different dinner party
+  </Card>
+</CardGroup>
+
+### AI Model Selection
+
+Just like Seance Mode, you can choose different AI models for different capabilities:
+
+- **Swift models** (free): Fast responses, good for casual conversations
+- **Balanced models**: Higher quality with reasonable speed
+- **Advanced models**: Most nuanced and sophisticated responses
+
+<Note>
+  Advanced models may handle complex group dynamics better when managing 4-5 guests.
+</Note>
+
+## Example Dinner Party Ideas
+
+### Cross-Disciplinary Discussions
+
+<Tabs>
+  <Tab title="Art meets Science">
+    **Guests**: da Vinci, Einstein, Marie Curie
+    
+    **Topics**:
+    - Where do creativity and logic intersect?
+    - How does observation shape both art and science?
+  </Tab>
+  
+  <Tab title="Ancient vs Modern">
+    **Guests**: Socrates, Aristotle, Hawking, Sagan
+    
+    **Topics**:
+    - How have our questions about existence evolved?
+    - What would ancient philosophers think of modern cosmology?
+  </Tab>
+  
+  <Tab title="Innovators Summit">
+    **Guests**: Tesla, Edison (if available), Turing, Hopper
+    
+    **Topics**:
+    - What is the nature of innovation?
+    - How do you balance vision with practical implementation?
+  </Tab>
+</Tabs>
+
+### Themed Debates
+
+1. **Leadership styles**: Caesar, Cleopatra, Lincoln, Gandhi
+2. **The nature of reality**: Einstein, Bohr, Plato, Aristotle
+3. **Mathematics and beauty**: Pythagoras, Euler, Ramanujan, da Vinci
+4. **Breaking barriers**: Marie Curie, Frida Kahlo, Harriet Tubman, Ada Lovelace
+
+## Technical Implementation
+
+### System Prompt
+
+Dinner Party Mode uses a specialized prompt that:
+
+```python
+from figures import get_dinner_party_prompt
+
+prompt = get_dinner_party_prompt(['einstein', 'bohr', 'heisenberg'])
+# Creates a prompt with:
+# - Each guest's personality traits
+# - Their historical beliefs and values  
+# - Response format instructions
+# - Group dynamics guidelines
+```
+
+### Response Parsing
+
+The app automatically parses structured responses:
+
+```javascript
+// Raw response from AI:
+"[einstein]: Quantum mechanics is fascinating...\n\n[bohr]: I agree, but..."
+
+// Parsed into individual responses:
+[
+  { figure_id: 'einstein', response: 'Quantum mechanics is...' },
+  { figure_id: 'bohr', response: 'I agree, but...' }
+]
+```
+
+### Constraints
+
+- **Min guests**: 2 (enforced by API)
+- **Max guests**: 5 (enforced by API)
+- **History limit**: Last 20 messages (same as Seance Mode)
+- **Response length**: 1-2 paragraphs per guest recommended
+
+## Tips for Great Dinner Parties
+
+1. **Start with open-ended questions**: Allow guests to share diverse perspectives
+2. **Ask comparative questions**: "How do your approaches differ?"
+3. **Introduce hypotheticals**: "What if you all lived in the modern era?"
+4. **Reference guest expertise**: Ask questions that play to each figure's strengths
+5. **Let debates develop**: Follow up when guests disagree
+
+## Troubleshooting
+
+<Accordion title="Guests not responding">
+  - Check that you have 2-5 guests selected
+  - Verify your internet connection
+  - Try refreshing the page if the issue persists
+</Accordion>
+
+<Accordion title="Responses seem out of character">
+  - Try using a more advanced AI model
+  - Rephrase your question to be more specific
+  - Check if the question is appropriate for all guests' time periods
+</Accordion>
+
+<Accordion title="Rate limiting errors">
+  - Wait a few moments and try again
+  - Switch to a different AI model
+  - The system will automatically try fallback models
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Historical Figures" icon="users" href="/features/historical-figures">
+    Browse all figures to find perfect dinner guests
+  </Card>
+  
+  <Card title="Seance Mode" icon="comments" href="/features/seance-mode">
+    Have 1-on-1 conversations with figures
+  </Card>
+  
+  <Card title="Conversation History" icon="clock-rotate-left" href="/features/conversation-history">
+    Manage your dinner party conversations
+  </Card>
+</CardGroup>

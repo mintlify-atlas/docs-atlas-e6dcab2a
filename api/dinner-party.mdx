@@ -1,0 +1,360 @@
+---
+title: 'Dinner Party API'
+description: 'Host conversations with multiple historical figures at once'
+---
+
+## Overview
+
+The Dinner Party API allows you to create conversations where multiple historical figures interact with each other and respond to your questions. This creates dynamic, multi-perspective discussions.
+
+---
+
+## GET /api/dinner-party/combos
+
+Retrieve curated combinations of historical figures that work well together in dinner party conversations.
+
+### Request
+
+No parameters required.
+
+```bash
+curl http://localhost:5000/api/dinner-party/combos
+```
+
+### Response
+
+<ResponseField name="combos" type="array">
+  Array of curated guest combination objects
+  
+  <Expandable title="combo object">
+    <ResponseField name="id" type="string">
+      Unique identifier for the combination
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Display name for the combination
+    </ResponseField>
+    
+    <ResponseField name="description" type="string">
+      Brief description of why this combination is interesting
+    </ResponseField>
+    
+    <ResponseField name="guests" type="array">
+      Array of figure IDs in this combination
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "combos": [
+    {
+      "id": "renaissance-titans",
+      "name": "Renaissance Titans",
+      "description": "Artists and inventors who shaped the Renaissance",
+      "guests": ["davinci", "shakespeare", "galileo"]
+    },
+    {
+      "id": "revolutionary-minds",
+      "name": "Revolutionary Minds",
+      "description": "Leaders who changed the course of history",
+      "guests": ["lincoln", "cleopatra", "napoleon"]
+    }
+  ]
+}
+```
+
+---
+
+## POST /api/dinner-party/chat
+
+Send a message to multiple historical figures and receive individual responses from each.
+
+### Request
+
+<ParamField body="guests" type="array" required>
+  Array of figure IDs to include in the conversation (minimum 2, maximum 5)
+</ParamField>
+
+<ParamField body="message" type="string" required>
+  The user's message to send to all guests
+</ParamField>
+
+<ParamField body="history" type="array">
+  Array of previous conversation messages for context (limited to last 20 messages)
+  
+  <Expandable title="message object">
+    <ParamField body="role" type="string">
+      Message role: "user" or "assistant"
+    </ParamField>
+    
+    <ParamField body="content" type="string">
+      The message content
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="model" type="string">
+  Optional AI model override (default: "google/gemma-3-12b-it:free")
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:5000/api/dinner-party/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "guests": ["einstein", "davinci", "cleopatra"],
+    "message": "What is the most important quality for a leader?",
+    "history": [],
+    "model": "openai/gpt-4o-mini"
+  }'
+```
+
+### Response
+
+<ResponseField name="responses" type="array">
+  Array of individual responses from each guest
+  
+  <Expandable title="response object">
+    <ResponseField name="figure_id" type="string">
+      The ID of the figure who responded
+    </ResponseField>
+    
+    <ResponseField name="response" type="string">
+      The figure's response text
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="raw_response" type="string">
+  The unparsed response from the AI model
+</ResponseField>
+
+<ResponseField name="guests" type="array">
+  Array of full figure objects for all guests in the conversation
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "responses": [
+    {
+      "figure_id": "einstein",
+      "response": "Ah, from my experience, I would say curiosity is paramount! A leader must constantly question, explore, and remain open to new ideas. Imagination is more important than knowledge, after all. Without curiosity, how can one lead others into uncharted territories?"
+    },
+    {
+      "figure_id": "davinci",
+      "response": "I must agree with my learned friend, though I would add observation. A true leader must observe everything - the needs of the people, the patterns in nature, the consequences of actions. From observation comes understanding, and from understanding, wisdom."
+    },
+    {
+      "figure_id": "cleopatra",
+      "response": "Gentlemen, while I respect your scholarly perspectives, I submit that decisiveness is the most crucial quality. A leader who cannot make difficult choices when necessary, no matter how curious or observant, will fail their people. I learned this ruling Egypt in turbulent times."
+    }
+  ],
+  "raw_response": "[einstein]: Ah, from my experience...\n\n[davinci]: I must agree...\n\n[cleopatra]: Gentlemen, while I respect...",
+  "guests": [
+    {
+      "id": "einstein",
+      "name": "Albert Einstein",
+      "title": "Theoretical Physicist"
+    },
+    {
+      "id": "davinci",
+      "name": "Leonardo da Vinci",
+      "title": "Artist, Inventor, and Polymath"
+    },
+    {
+      "id": "cleopatra",
+      "name": "Cleopatra VII",
+      "title": "Queen of Egypt, Last Pharaoh of the Ptolemaic Kingdom"
+    }
+  ]
+}
+```
+
+### Error Responses
+
+#### Invalid Guest Count
+```json
+{
+  "error": "At least 2 guests required"
+}
+```
+**Status Code:** `400`
+
+```json
+{
+  "error": "Maximum 5 guests allowed"
+}
+```
+**Status Code:** `400`
+
+#### Guest Not Found
+```json
+{
+  "error": "Guest 'unknown_figure' not found"
+}
+```
+**Status Code:** `404`
+
+#### API Error
+```json
+{
+  "error": "The spirits are overwhelmed with visitors right now. Please wait a moment and try again.",
+  "guests": [ /* guest objects */ ]
+}
+```
+**Status Code:** `500`
+
+---
+
+## POST /api/dinner-party/chat/stream
+
+Send a message to multiple historical figures and receive a streaming response using Server-Sent Events (SSE).
+
+### Request
+
+Identical to `/api/dinner-party/chat` - see parameters above.
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:5000/api/dinner-party/chat/stream \
+  -H "Content-Type: application/json" \
+  -d '{
+    "guests": ["einstein", "davinci", "cleopatra"],
+    "message": "What is the most important quality for a leader?"
+  }'
+```
+
+### Response Format
+
+The endpoint returns a Server-Sent Events (SSE) stream with `Content-Type: text/event-stream`. The format is identical to `/api/chat/stream`.
+
+#### Headers
+```
+Content-Type: text/event-stream
+Cache-Control: no-cache
+Connection: keep-alive
+X-Accel-Buffering: no
+```
+
+### Event Types
+
+Same as `/api/chat/stream`:
+
+- **content**: `{"content": "text chunk"}`
+- **done**: `{"done": true}`
+- **error**: `{"error": "error message", "rate_limited": true}`
+
+### Example Stream
+
+```
+data: {"content": "[einstein]: "}
+
+data: {"content": "Ah, from "}
+
+data: {"content": "my experience..."}
+
+data: {"content": "\n\n[davinci]: "}
+
+data: {"content": "I must agree..."}
+
+data: {"done": true}
+
+```
+
+---
+
+## POST /api/dinner-party/suggestions
+
+Generate contextual follow-up questions for a dinner party conversation.
+
+### Request
+
+<ParamField body="guests" type="array">
+  Array of figure IDs in the conversation
+</ParamField>
+
+<ParamField body="history" type="array">
+  Previous conversation messages for context
+</ParamField>
+
+<ParamField body="last_response" type="string">
+  The most recent response from the guests
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:5000/api/dinner-party/suggestions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "guests": ["einstein", "davinci"],
+    "last_response": "[einstein]: Curiosity is paramount!..."
+  }'
+```
+
+### Response
+
+<ResponseField name="suggestions" type="array">
+  Array of 3 suggested follow-up questions (strings, max 40 characters each)
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "suggestions": [
+    "What do you both disagree on?",
+    "How did you develop curiosity?",
+    "What is your greatest discovery?"
+  ]
+}
+```
+
+### Notes
+
+- If the AI fails to generate suggestions, default suggestions are returned
+- Suggestions are optimized to be short (under 40 characters)
+- The endpoint always returns 200 OK, even if AI generation fails
+
+---
+
+## Implementation Notes
+
+### Response Parsing
+
+The API uses a single LLM call for efficiency and parses the structured response. The expected format is:
+
+```
+[FIGURE_ID]: Response text here
+
+[ANOTHER_FIGURE_ID]: Another response here
+```
+
+Supported formats:
+- `[einstein]:` - Lowercase ID in brackets
+- `[EINSTEIN]:` - Uppercase ID in brackets
+- `EINSTEIN:` - Uppercase ID without brackets
+- `**Einstein:**` - Markdown bold with name
+- `Albert Einstein:` - Full name
+
+### System Prompts
+
+The dinner party system prompt combines information about all guests and instructs the AI to:
+- Generate responses from each guest in their unique voice
+- Have guests interact with and respond to each other
+- Maintain distinct personalities and perspectives
+- Format responses with clear attribution
+
+### Limitations
+
+- **Minimum guests**: 2
+- **Maximum guests**: 5
+- **History limit**: Last 20 messages
+- **Response parsing**: If parsing fails, the entire response is attributed to the first guest

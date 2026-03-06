@@ -1,80 +1,231 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get SeanceAI up and running in minutes
 ---
 
-## Get started in three steps
+# Quick Start Guide
 
-Get your documentation site running locally and make your first customization.
+Get SeanceAI running locally in just a few steps. You'll be conversing with historical figures in under 5 minutes!
 
-### Step 1: Set up your local environment
+## Prerequisites
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+Before you begin, make sure you have:
 
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+- **Python 3.11 or higher** installed
+- **An OpenRouter API key** ([Get one free here](https://openrouter.ai/))
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  OpenRouter provides access to multiple AI models. The free tier includes models like Gemma 3 and Llama 3.3 that work great with SeanceAI.
 </Note>
+
+## Installation Steps
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the SeanceAI repository to your local machine:
+    
+    ```bash
+    git clone https://github.com/ARJUNVARMA2000/Seance_AI.git
+    cd Seance_AI
+    ```
+  </Step>
+
+  <Step title="Create a virtual environment">
+    Set up a Python virtual environment to keep dependencies isolated:
+    
+    ```bash
+    python -m venv venv
+    ```
+    
+    Then activate it:
+    
+    **On Windows:**
+    ```bash
+    venv\Scripts\activate
+    ```
+    
+    **On macOS/Linux:**
+    ```bash
+    source venv/bin/activate
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    Install all required Python packages:
+    
+    ```bash
+    pip install -r requirements.txt
+    ```
+    
+    This installs Flask, requests, python-dotenv, and other dependencies needed to run SeanceAI.
+  </Step>
+
+  <Step title="Configure your API key">
+    Create a `.env` file in the project root and add your OpenRouter API key:
+    
+    ```bash
+    echo OPENROUTER_API_KEY=your_key_here > .env
+    ```
+    
+    Replace `your_key_here` with your actual OpenRouter API key.
+    
+    <Warning>
+      Keep your API key secure! Never commit the `.env` file to version control.
+    </Warning>
+  </Step>
+
+  <Step title="Start the development server">
+    Launch the Flask application:
+    
+    ```bash
+    python app.py
+    ```
+    
+    You should see output indicating the server is running:
+    
+    ```
+    * Running on http://0.0.0.0:5000
+    ```
+  </Step>
+
+  <Step title="Open your browser">
+    Navigate to `http://localhost:5000` in your web browser.
+    
+    You'll see the SeanceAI interface with options to start a Seance or host a Dinner Party!
+  </Step>
+</Steps>
+
+## Your First Conversation
+
+<Steps>
+  <Step title="Choose a mode">
+    On the home page, select either:
+    - **Start a Seance** - for one-on-one conversations
+    - **Host a Dinner Party** - for multi-figure discussions
+  </Step>
+
+  <Step title="Select a historical figure">
+    Browse through 60+ historical figures organized by era:
+    - Ancient World
+    - Renaissance
+    - 19th Century
+    - Modern Era
+    
+    Use the search bar to quickly find specific figures.
+  </Step>
+
+  <Step title="Start conversing">
+    Once you've selected a figure, you'll see:
+    - Their portrait and biographical information
+    - Starter questions to help you begin
+    - A text input for your messages
+    
+    Type your question and press Enter or click Send!
+  </Step>
+
+  <Step title="Enjoy authentic responses">
+    The AI will respond in character with:
+    - Era-appropriate language and knowledge
+    - Personality-specific speaking style
+    - Genuine curiosity about modern concepts
+    
+    Use the suggested follow-up questions or ask anything you'd like!
+  </Step>
+</Steps>
+
+## Configuration Options
+
+SeanceAI supports several environment variables you can set in your `.env` file:
+
+```bash
+# Required
+OPENROUTER_API_KEY=your_key_here
+
+# Optional
+FLASK_DEBUG=true          # Enable debug mode (default: false)
+PORT=5000                  # Server port (default: 5000)
+```
+
+## Available API Endpoints
+
+Once running, SeanceAI exposes these REST endpoints:
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/` | Serve main HTML page |
+| `GET` | `/api/figures` | Return list of all historical figures |
+| `GET` | `/api/figures/<id>` | Return single figure data |
+| `GET` | `/api/models` | List available AI models |
+| `GET` | `/api/health` | Health check endpoint |
+| `POST` | `/api/chat` | Send message, receive AI response |
+| `POST` | `/api/chat/stream` | Streaming chat endpoint (SSE) |
+| `POST` | `/api/dinner-party/chat` | Multi-figure conversation |
+| `POST` | `/api/suggestions` | Get contextual follow-up questions |
+
+### Example API Request
+
+You can interact with SeanceAI programmatically:
+
+```bash
+curl -X POST http://localhost:5000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "figure_id": "einstein",
+    "message": "What is your theory of relativity?",
+    "history": []
+  }'
+```
+
+Response:
+```json
+{
+  "response": "Ah, a fundamental question! My theory of relativity...",
+  "figure": {
+    "id": "einstein",
+    "name": "Albert Einstein",
+    "era": "Modern Era"
+  }
+}
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Server won't start">
+    - Check that Python 3.11+ is installed: `python --version`
+    - Ensure all dependencies are installed: `pip install -r requirements.txt`
+    - Verify your virtual environment is activated
+  </Accordion>
+
+  <Accordion title="API key errors">
+    - Verify your `.env` file exists in the project root
+    - Check that your API key is valid at [OpenRouter](https://openrouter.ai/)
+    - Make sure the key is set correctly: `OPENROUTER_API_KEY=your_key`
+  </Accordion>
+
+  <Accordion title="Rate limit errors">
+    SeanceAI includes automatic fallback handling:
+    - If one model is rate-limited, it automatically tries fallback models
+    - Switch to a different AI model using the dropdown in the UI
+    - Wait a moment before trying again
+  </Accordion>
+
+  <Accordion title="Port already in use">
+    If port 5000 is in use, specify a different port:
+    ```bash
+    PORT=8080 python app.py
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Explore Features" icon="compass" href="/features">
+    Learn about all the features SeanceAI offers
+  </Card>
+  
+  <Card title="Try the Live Demo" icon="rocket" href="https://seance-ai.up.railway.app">
+    Experience SeanceAI without installing anything
+  </Card>
+</CardGroup>

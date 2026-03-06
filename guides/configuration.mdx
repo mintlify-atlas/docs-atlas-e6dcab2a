@@ -1,0 +1,214 @@
+---
+title: Configuration
+description: Configure SeanceAI with environment variables and settings
+---
+
+## Environment Variables
+
+SeanceAI uses environment variables for configuration. These can be set in a `.env` file for local development or through your hosting platform's dashboard for production deployments.
+
+### Required Variables
+
+#### OPENROUTER_API_KEY
+
+The OpenRouter API key is required for SeanceAI to communicate with AI models.
+
+```bash
+OPENROUTER_API_KEY=sk-or-v1-...
+```
+
+<Warning>
+  This is a **required** variable. The application will run but conversations will fail without a valid API key.
+</Warning>
+
+**How to get an API key:**
+
+<Steps>
+  <Step title="Sign up for OpenRouter">
+    Visit [OpenRouter.ai](https://openrouter.ai/) and create a free account.
+  </Step>
+
+  <Step title="Generate an API key">
+    Navigate to the API Keys section in your account dashboard and create a new key.
+  </Step>
+
+  <Step title="Add credits (optional)">
+    OpenRouter offers free models (Gemini, Llama) that don't require credits. For premium models like GPT-4 or Claude, you'll need to add credits to your account.
+  </Step>
+</Steps>
+
+### Optional Variables
+
+#### PORT
+
+The port number for the Flask application to listen on.
+
+```bash
+PORT=5000
+```
+
+- **Default**: `5000`
+- **Usage**: Automatically set by most hosting platforms (Railway, Fly.io, etc.)
+- **Example**: Set to `8080` or `3000` if port 5000 is already in use
+
+#### FLASK_DEBUG
+
+Enable or disable Flask debug mode.
+
+```bash
+FLASK_DEBUG=false
+```
+
+- **Default**: `false`
+- **Values**: `true` or `false`
+- **Usage**: Set to `true` for local development to enable auto-reload and detailed error messages
+
+<Warning>
+  Never enable debug mode in production. It exposes sensitive information and can be a security risk.
+</Warning>
+
+## Application Configuration
+
+The following settings are configured in `app.py` and can be modified if needed:
+
+### AI Model Configuration
+
+#### Default Model
+
+```python
+DEFAULT_MODEL = "google/gemma-3-12b-it:free"
+```
+
+The default AI model used for conversations. This can be overridden by users through the model selector in the UI.
+
+#### Fallback Models
+
+```python
+FALLBACK_MODELS = [
+    "google/gemma-3-27b-it:free",
+    "google/gemma-3-4b-it:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "meta-llama/llama-3.1-405b-instruct:free",
+]
+```
+
+If the primary model is rate-limited or unavailable, SeanceAI automatically tries these fallback models in order.
+
+### Conversation Settings
+
+#### Max History
+
+```python
+MAX_HISTORY = 20
+```
+
+Maximum number of messages to keep in conversation history. This prevents token limits from being exceeded with long conversations.
+
+#### Rate Limiting
+
+```python
+MAX_RETRIES = 3
+RETRY_DELAYS = [2, 5, 10]  # seconds
+```
+
+Retry configuration for handling API rate limits:
+- **MAX_RETRIES**: Number of retry attempts per model
+- **RETRY_DELAYS**: Exponential backoff delays between retries
+
+### Gunicorn Configuration
+
+For production deployments, Gunicorn settings are configured in `gunicorn_config.py`:
+
+```python
+worker_class = "gevent"  # Async support for streaming
+workers = 2              # Number of worker processes
+timeout = 120            # Request timeout in seconds
+keepalive = 5            # Keep-alive connections
+```
+
+<Note>
+  The `gevent` worker class is required to support Server-Sent Events (SSE) for streaming responses.
+</Note>
+
+## Model Selection
+
+SeanceAI supports multiple AI models organized by tier:
+
+### Swift Tier (Free)
+
+Fast, responsive models that don't require credits:
+- **Gemma 3 12B** - Default model
+- **Gemma 3 27B** - Larger Gemma model
+- **Llama 3.3 70B** - Meta's flagship model
+- **Llama 3.1 405B** - Largest free model
+
+### Balanced Tier
+
+Good mix of speed and capability:
+- **GPT-4o Mini** - OpenAI's efficient model
+- **Claude 3.5 Haiku** - Fast Anthropic model
+- **DeepSeek V3** - Advanced reasoning
+
+### Advanced Tier
+
+Most capable models for best results:
+- **Claude Sonnet 4** - Latest Anthropic model
+- **GPT-4o** - OpenAI's flagship
+- **Gemini 2.5 Pro** - Google's advanced model
+- **Claude Opus 4** - Anthropic's most capable model
+
+<Note>
+  Balanced and Advanced tier models require OpenRouter credits. The free tier models are sufficient for most conversations.
+</Note>
+
+## API Configuration
+
+The OpenRouter API endpoint is configured as:
+
+```python
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+```
+
+All API requests include:
+- **Authorization header**: Bearer token with your API key
+- **HTTP-Referer**: Your application's URL
+- **X-Title**: "SeanceAI - Talk to History"
+
+## Health Check Endpoint
+
+SeanceAI includes a health check endpoint at `/api/health` that returns:
+
+```json
+{
+  "status": "healthy",
+  "api_key_configured": true,
+  "api_key_length": 64
+}
+```
+
+This is useful for:
+- Monitoring service health
+- Verifying API key configuration
+- Setting up uptime monitoring (see [Deployment](/guides/deployment))
+
+## Example .env File
+
+Here's a complete example `.env` file for local development:
+
+```bash
+# Required
+OPENROUTER_API_KEY=sk-or-v1-your-key-here
+
+# Optional
+PORT=5000
+FLASK_DEBUG=true
+```
+
+<Warning>
+  Never commit your `.env` file to version control. Add it to your `.gitignore` file to prevent accidentally exposing your API key.
+</Warning>
+
+## Next Steps
+
+- Review the [Installation Guide](/guides/installation) if you haven't set up SeanceAI yet
+- Deploy your configured instance with the [Deployment Guide](/guides/deployment)

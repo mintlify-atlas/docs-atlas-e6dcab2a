@@ -1,0 +1,368 @@
+---
+title: Deployment
+description: Deploy SeanceAI to production on Railway, Fly.io, and other platforms
+---
+
+## Overview
+
+SeanceAI is a standard Flask application that can be deployed to any platform supporting Python. This guide covers the recommended platforms and configuration.
+
+<Note>
+  All deployment platforms require you to set the `OPENROUTER_API_KEY` environment variable. See the [Configuration](/guides/configuration) guide for details.
+</Note>
+
+## Railway (Recommended)
+
+Railway is the recommended platform for deploying SeanceAI due to its simplicity and automatic configuration detection.
+
+### Quick Deploy
+
+<Steps>
+  <Step title="Fork the repository">
+    Fork the [SeanceAI repository](https://github.com/ARJUNVARMA2000/Seance_AI) to your GitHub account.
+  </Step>
+
+  <Step title="Create a Railway project">
+    1. Visit [Railway.app](https://railway.app) and sign in
+    2. Click "New Project"
+    3. Select "Deploy from GitHub repo"
+    4. Choose your forked SeanceAI repository
+  </Step>
+
+  <Step title="Configure environment variables">
+    In your Railway project settings:
+    
+    1. Navigate to the "Variables" tab
+    2. Add a new variable:
+       - **Key**: `OPENROUTER_API_KEY`
+       - **Value**: Your OpenRouter API key
+  </Step>
+
+  <Step title="Deploy">
+    Railway will automatically:
+    - Detect the Flask application
+    - Use the `railway.json` configuration
+    - Install dependencies from `requirements.txt`
+    - Start the app with Gunicorn using the `Procfile`
+    
+    Your app will be live at `https://your-app.up.railway.app`
+  </Step>
+</Steps>
+
+### Railway Configuration
+
+SeanceAI includes a `railway.json` file with optimized settings:
+
+```json
+{
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "gunicorn app:app --config gunicorn_config.py",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
+}
+```
+
+### Keeping Your App Awake (Free Tier)
+
+<Warning>
+  On Railway's Hobby (free) tier, services sleep after ~5 minutes of inactivity. Cold starts can take 30 seconds to 2 minutes.
+</Warning>
+
+To keep your app responsive for visitors (useful for portfolios):
+
+#### Option A: Free Uptime Monitoring
+
+Use a free uptime monitoring service to ping your health endpoint every 5-10 minutes:
+
+**URL to monitor:**
+```
+https://your-app.up.railway.app/api/health
+```
+
+**Recommended services:**
+- [UptimeRobot](https://uptimerobot.com) - Free, 5-minute checks
+- [cron-job.org](https://cron-job.org) - Free scheduled requests
+- [Better Uptime](https://betteruptime.com) - Free tier available
+
+<Steps>
+  <Step title="Sign up for UptimeRobot">
+    Create a free account at [UptimeRobot.com](https://uptimerobot.com)
+  </Step>
+
+  <Step title="Add a new monitor">
+    - Monitor Type: HTTP(S)
+    - URL: `https://your-app.up.railway.app/api/health`
+    - Monitoring Interval: 5 minutes
+  </Step>
+
+  <Step title="Save and activate">
+    The monitor will now keep your app awake by sending requests every 5 minutes.
+  </Step>
+</Steps>
+
+#### Option B: Paid Railway Plan
+
+Upgrade to a Railway plan that keeps services running without sleep. Check [Railway pricing](https://railway.app/pricing) for always-on options.
+
+## Fly.io
+
+Fly.io is another excellent option with global edge deployment.
+
+### Deploy to Fly.io
+
+<Steps>
+  <Step title="Install Fly CLI">
+    Follow the [Fly.io installation guide](https://fly.io/docs/getting-started/installing-flyctl/) for your platform:
+
+    <CodeGroup>
+      ```bash macOS
+      brew install flyctl
+      ```
+
+      ```bash Linux
+      curl -L https://fly.io/install.sh | sh
+      ```
+
+      ```bash Windows
+      iwr https://fly.io/install.ps1 -useb | iex
+      ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Authenticate with Fly">
+    ```bash
+    fly auth login
+    ```
+  </Step>
+
+  <Step title="Launch the app">
+    From your SeanceAI directory:
+
+    ```bash
+    fly launch
+    ```
+
+    This will:
+    - Detect the Flask application
+    - Use the existing `fly.toml` configuration
+    - Create a new Fly.io app
+  </Step>
+
+  <Step title="Set environment variables">
+    Set your OpenRouter API key as a secret:
+
+    ```bash
+    fly secrets set OPENROUTER_API_KEY=your_key_here
+    ```
+  </Step>
+
+  <Step title="Deploy">
+    Deploy your application:
+
+    ```bash
+    fly deploy
+    ```
+
+    Your app will be live at `https://your-app.fly.dev`
+  </Step>
+</Steps>
+
+### Fly.io Configuration
+
+The included `fly.toml` file configures:
+
+```toml
+app = "seanceai"
+primary_region = "iad"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+```
+
+<Note>
+  Fly.io automatically scales to zero when idle and wakes on requests, similar to Railway's free tier.
+</Note>
+
+## Other Platforms
+
+SeanceAI can be deployed to any platform that supports Python and Flask:
+
+### Heroku
+
+<Steps>
+  <Step title="Install Heroku CLI">
+    Download from [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
+  </Step>
+
+  <Step title="Create app and deploy">
+    ```bash
+    heroku create your-app-name
+    heroku config:set OPENROUTER_API_KEY=your_key_here
+    git push heroku main
+    ```
+  </Step>
+</Steps>
+
+The included `Procfile` will be automatically detected:
+```
+web: gunicorn app:app --config gunicorn_config.py
+```
+
+### Render
+
+1. Connect your GitHub repository on [Render.com](https://render.com)
+2. Create a new Web Service
+3. Set the start command: `gunicorn app:app --config gunicorn_config.py`
+4. Add environment variable: `OPENROUTER_API_KEY`
+5. Deploy
+
+### DigitalOcean App Platform
+
+1. Create new app from GitHub on [DigitalOcean](https://cloud.digitalocean.com/apps)
+2. DigitalOcean will detect Python and dependencies
+3. Set environment variable: `OPENROUTER_API_KEY`
+4. Deploy
+
+### Google Cloud Run
+
+<Steps>
+  <Step title="Create Dockerfile">
+    Add a `Dockerfile` to your project:
+
+    ```dockerfile
+    FROM python:3.11-slim
+    WORKDIR /app
+    COPY requirements.txt .
+    RUN pip install -r requirements.txt
+    COPY . .
+    CMD gunicorn app:app --config gunicorn_config.py
+    ```
+  </Step>
+
+  <Step title="Deploy to Cloud Run">
+    ```bash
+    gcloud run deploy seanceai \
+      --source . \
+      --set-env-vars OPENROUTER_API_KEY=your_key_here \
+      --allow-unauthenticated
+    ```
+  </Step>
+</Steps>
+
+### AWS Elastic Beanstalk
+
+1. Install the [EB CLI](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb-cli3-install.html)
+2. Initialize and create environment:
+   ```bash
+   eb init -p python-3.11 seanceai
+   eb create seanceai-env
+   eb setenv OPENROUTER_API_KEY=your_key_here
+   ```
+3. Deploy: `eb deploy`
+
+## Production Configuration
+
+### Gunicorn Settings
+
+The included `gunicorn_config.py` is optimized for production:
+
+- **Worker Class**: `gevent` for async streaming support
+- **Workers**: 2 processes for handling concurrent requests
+- **Timeout**: 120 seconds for long-running streaming requests
+- **Logging**: Outputs to stdout/stderr for platform log aggregation
+
+### Environment Variables
+
+For production, ensure:
+
+```bash
+# Required
+OPENROUTER_API_KEY=your_key_here
+
+# Auto-configured by most platforms
+PORT=8080
+
+# Must be false in production
+FLASK_DEBUG=false
+```
+
+<Warning>
+  Never enable `FLASK_DEBUG=true` in production. It exposes sensitive information and is a security risk.
+</Warning>
+
+## Monitoring and Maintenance
+
+### Health Checks
+
+All platforms should monitor the health endpoint:
+```
+GET /api/health
+```
+
+Example response:
+```json
+{
+  "status": "healthy",
+  "api_key_configured": true,
+  "api_key_length": 64
+}
+```
+
+### Logging
+
+Gunicorn logs to stdout/stderr, which most platforms automatically collect:
+- **Railway**: View logs in the deployments tab
+- **Fly.io**: Use `fly logs`
+- **Heroku**: Use `heroku logs --tail`
+
+### Updating Your Deployment
+
+Most platforms auto-deploy on git push:
+
+1. Make changes locally
+2. Commit and push to your GitHub repository
+3. Platform automatically rebuilds and deploys
+
+For manual deployments:
+- **Fly.io**: `fly deploy`
+- **Heroku**: `git push heroku main`
+- **Railway**: Auto-deploys on push
+
+## Troubleshooting
+
+### App Won't Start
+
+- Verify `OPENROUTER_API_KEY` is set correctly
+- Check platform logs for errors
+- Ensure Python 3.11+ is specified in platform config
+
+### Streaming Not Working
+
+- Verify `gevent` is installed (`pip list | grep gevent`)
+- Check that Gunicorn uses `worker_class = "gevent"`
+- Ensure platform doesn't buffer streaming responses
+
+### API Rate Limits
+
+- SeanceAI automatically retries and falls back to alternative models
+- For high traffic, consider upgrading your OpenRouter plan
+- Monitor usage at [OpenRouter dashboard](https://openrouter.ai/dashboard)
+
+## Next Steps
+
+- Review [Configuration](/guides/configuration) for advanced settings
+- Check out the [Installation](/guides/installation) guide for local development
+- View the [API Documentation](https://github.com/ARJUNVARMA2000/Seance_AI#-api-documentation)

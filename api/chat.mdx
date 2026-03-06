@@ -1,0 +1,282 @@
+---
+title: 'Chat API'
+description: 'Have one-on-one conversations with historical figures'
+---
+
+## POST /api/chat
+
+Send a message to a historical figure and receive a response.
+
+### Request
+
+<ParamField body="figure_id" type="string" required>
+  The unique identifier of the figure to chat with (e.g., "einstein", "cleopatra")
+</ParamField>
+
+<ParamField body="message" type="string" required>
+  The user's message to send to the historical figure
+</ParamField>
+
+<ParamField body="history" type="array">
+  Array of previous conversation messages for context (limited to last 20 messages)
+  
+  <Expandable title="message object">
+    <ParamField body="role" type="string">
+      Message role: "user" or "assistant"
+    </ParamField>
+    
+    <ParamField body="content" type="string">
+      The message content
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="model" type="string">
+  Optional AI model override (default: "google/gemma-3-12b-it:free")
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:5000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "figure_id": "einstein",
+    "message": "What inspired your theory of relativity?",
+    "history": [
+      {
+        "role": "user",
+        "content": "Hello Professor Einstein!"
+      },
+      {
+        "role": "assistant",
+        "content": "Ah, greetings! How wonderful to make your acquaintance."
+      }
+    ],
+    "model": "openai/gpt-4o-mini"
+  }'
+```
+
+### Response
+
+<ResponseField name="response" type="string">
+  The AI-generated response from the historical figure
+</ResponseField>
+
+<ResponseField name="figure" type="object">
+  Information about the figure who responded
+  
+  <Expandable title="properties">
+    <ResponseField name="id" type="string">
+      Figure identifier
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Figure's full name
+    </ResponseField>
+    
+    <ResponseField name="title" type="string">
+      Figure's title/description
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "response": "Ah, what a wonderful question! You know, it all started with a thought experiment when I was just a young patent clerk in Bern. I imagined myself riding alongside a beam of light, traveling at the speed of light itself. What would I see? Would the light appear frozen, stationary beside me?\n\nThis simple question troubled me deeply, and it made me realize that our notions of absolute time and space couldn't be correct. The breakthrough came when I understood that time itself is relative - it flows differently depending on how fast you're moving! The faster you go, the slower time passes for you relative to someone standing still.\n\nBut tell me, what draws you to relativity? Is it the physics that fascinates you, or perhaps the philosophical implications?",
+  "figure": {
+    "id": "einstein",
+    "name": "Albert Einstein",
+    "title": "Theoretical Physicist",
+    "birth_year": 1879,
+    "death_year": 1955,
+    "era": "Modern Era",
+    "tagline": "Father of Relativity, Nobel Laureate"
+  }
+}
+```
+
+### Error Responses
+
+#### Missing Parameters
+```json
+{
+  "error": "No figure_id provided"
+}
+```
+**Status Code:** `400`
+
+#### Figure Not Found
+```json
+{
+  "error": "Figure not found"
+}
+```
+**Status Code:** `404`
+
+#### API Error
+```json
+{
+  "error": "The spirits are overwhelmed with visitors right now. Please wait a moment and try again, or select a different AI model from the dropdown.",
+  "figure": { /* figure object */ }
+}
+```
+**Status Code:** `500`
+
+---
+
+## POST /api/chat/stream
+
+Send a message to a historical figure and receive a streaming response using Server-Sent Events (SSE).
+
+### Request
+
+Identical to `/api/chat` - see parameters above.
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:5000/api/chat/stream \
+  -H "Content-Type: application/json" \
+  -d '{
+    "figure_id": "einstein",
+    "message": "Tell me about your theory of relativity"
+  }'
+```
+
+### Response Format
+
+The endpoint returns a Server-Sent Events (SSE) stream with `Content-Type: text/event-stream`.
+
+#### Headers
+```
+Content-Type: text/event-stream
+Cache-Control: no-cache
+Connection: keep-alive
+X-Accel-Buffering: no
+```
+
+#### Event Format
+
+Each event is sent in the following format:
+
+```
+data: {"content": "text chunk"}
+
+```
+
+### Event Types
+
+<ResponseField name="content" type="object">
+  Streamed content chunk
+  
+  <Expandable title="properties">
+    <ResponseField name="content" type="string">
+      A portion of the response text
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="done" type="object">
+  Stream completion signal
+  
+  <Expandable title="properties">
+    <ResponseField name="done" type="boolean">
+      Always `true` when stream is complete
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="error" type="object">
+  Error during streaming
+  
+  <Expandable title="properties">
+    <ResponseField name="error" type="string">
+      Error message
+    </ResponseField>
+    
+    <ResponseField name="rate_limited" type="boolean">
+      Whether the error was due to rate limiting (optional)
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example Stream
+
+```
+data: {"content": "Ah, "}
+
+data: {"content": "what a "}
+
+data: {"content": "wonderful "}
+
+data: {"content": "question! "}
+
+data: {"content": "You know, "}
+
+data: {"content": "it all started..."}
+
+data: {"done": true}
+
+```
+
+### JavaScript Example
+
+```javascript
+const response = await fetch('http://localhost:5000/api/chat/stream', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    figure_id: 'einstein',
+    message: 'What inspired your theory of relativity?'
+  })
+});
+
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
+
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  
+  const chunk = decoder.decode(value);
+  const lines = chunk.split('\n');
+  
+  for (const line of lines) {
+    if (line.startsWith('data: ')) {
+      const data = JSON.parse(line.slice(6));
+      
+      if (data.content) {
+        console.log(data.content); // Stream content
+      } else if (data.done) {
+        console.log('Stream complete');
+      } else if (data.error) {
+        console.error('Error:', data.error);
+      }
+    }
+  }
+}
+```
+
+### Error Events
+
+```
+data: {"error": "The spirits are overwhelmed with visitors. Please wait a moment and try again, or select a different AI model.", "rate_limited": true}
+
+```
+
+---
+
+## Notes
+
+- **Conversation History**: The API maintains context by accepting a `history` array. The system automatically limits history to the last 20 messages to manage token usage.
+
+- **System Prompts**: Each figure has a unique system prompt that defines their personality, beliefs, speaking style, and historical context. The prompt ensures the AI stays in character.
+
+- **Model Selection**: You can override the default model by specifying the `model` parameter. See the [API Overview](/api/overview#available-models) for available models.
+
+- **Retry Logic**: The API automatically retries failed requests with exponential backoff and falls back to alternative models when rate limits are hit.
+
+- **Streaming Benefits**: Use `/api/chat/stream` for better user experience with faster perceived response times, especially for longer responses.

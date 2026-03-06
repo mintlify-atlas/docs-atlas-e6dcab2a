@@ -1,0 +1,126 @@
+---
+title: 'API Overview'
+description: 'Getting started with the SeanceAI REST API'
+---
+
+## Introduction
+
+The SeanceAI API allows you to build applications that enable conversations with historical figures powered by AI. The API provides endpoints for:
+
+- Retrieving information about available historical figures
+- Having one-on-one conversations with specific figures
+- Creating "dinner party" conversations with multiple figures
+- Getting contextual follow-up question suggestions
+
+## Base URL
+
+```
+http://localhost:5000
+```
+
+In production, replace with your deployed application URL.
+
+## Authentication
+
+The SeanceAI API uses OpenRouter for AI model access. You need to configure the `OPENROUTER_API_KEY` environment variable on the server side. No client-side authentication is required for API requests.
+
+### Environment Variables
+
+<ParamField path="OPENROUTER_API_KEY" type="string" required>
+  Your OpenRouter API key for accessing AI models
+</ParamField>
+
+## Request Format
+
+All POST endpoints expect JSON payloads with `Content-Type: application/json`.
+
+```bash
+curl -X POST http://localhost:5000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"figure_id": "einstein", "message": "Hello!"}'
+```
+
+## Response Format
+
+All endpoints return JSON responses. Successful responses have a 200 status code, while errors return appropriate 4xx or 5xx codes.
+
+### Success Response
+```json
+{
+  "response": "Ah, greetings! How wonderful to make your acquaintance...",
+  "figure": {
+    "id": "einstein",
+    "name": "Albert Einstein",
+    "title": "Theoretical Physicist"
+  }
+}
+```
+
+### Error Response
+```json
+{
+  "error": "Figure not found"
+}
+```
+
+## Error Codes
+
+<ResponseField name="400" type="Bad Request">
+  Missing or invalid request parameters
+</ResponseField>
+
+<ResponseField name="404" type="Not Found">
+  Requested resource (figure, endpoint) not found
+</ResponseField>
+
+<ResponseField name="500" type="Internal Server Error">
+  Server error, often due to AI model issues or rate limiting
+</ResponseField>
+
+## Rate Limiting
+
+The API implements automatic retry logic with exponential backoff and fallback models when rate limits are encountered. If all models are rate-limited, you'll receive an error message:
+
+```json
+{
+  "error": "The spirits are overwhelmed with visitors right now. Please wait a moment and try again, or select a different AI model from the dropdown."
+}
+```
+
+## Available Models
+
+The API supports multiple AI models organized by capability tier:
+
+### Swift Tier (Free)
+- `google/gemma-3-12b-it:free` (default)
+- `google/gemma-3-27b-it:free`
+- `meta-llama/llama-3.3-70b-instruct:free`
+
+### Balanced Tier
+- `openai/gpt-4o-mini`
+- `anthropic/claude-3.5-haiku`
+- `deepseek/deepseek-chat`
+
+### Advanced Tier
+- `anthropic/claude-sonnet-4`
+- `openai/gpt-4o`
+- `google/gemini-2.5-pro-preview`
+
+You can retrieve the full list via the `/api/models` endpoint or specify a model in the request body using the `model` parameter.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Figures" icon="users" href="/api/figures">
+    Learn about retrieving historical figure data
+  </Card>
+  <Card title="Chat" icon="comment" href="/api/chat">
+    Start conversations with historical figures
+  </Card>
+  <Card title="Dinner Party" icon="glass-cheers" href="/api/dinner-party">
+    Host conversations with multiple figures
+  </Card>
+  <Card title="Suggestions" icon="lightbulb" href="/api/suggestions">
+    Generate contextual follow-up questions
+  </Card>
+</CardGroup>

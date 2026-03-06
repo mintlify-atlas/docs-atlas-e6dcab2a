@@ -1,0 +1,230 @@
+---
+title: 'Suggestions API'
+description: 'Generate contextual follow-up questions for conversations'
+---
+
+## POST /api/suggestions
+
+Generate 2-3 contextual follow-up questions based on the current conversation with a historical figure. This endpoint helps users continue engaging conversations by suggesting relevant questions.
+
+### Request
+
+<ParamField body="figure_id" type="string" required>
+  The unique identifier of the figure in the conversation
+</ParamField>
+
+<ParamField body="history" type="array">
+  Array of previous conversation messages for context (last 4 messages are used)
+  
+  <Expandable title="message object">
+    <ParamField body="role" type="string">
+      Message role: "user" or "assistant"
+    </ParamField>
+    
+    <ParamField body="content" type="string">
+      The message content
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="last_response" type="string">
+  The most recent response from the historical figure
+</ParamField>
+
+<ParamField body="model" type="string">
+  Optional AI model override (uses fast model by default: "meta-llama/llama-3.3-70b-instruct:free")
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:5000/api/suggestions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "figure_id": "einstein",
+    "history": [
+      {
+        "role": "user",
+        "content": "What inspired your theory of relativity?"
+      },
+      {
+        "role": "assistant",
+        "content": "It all started with a thought experiment when I was a young patent clerk..."
+      }
+    ],
+    "last_response": "It all started with a thought experiment when I was a young patent clerk in Bern. I imagined myself riding alongside a beam of light."
+  }'
+```
+
+### Response
+
+<ResponseField name="suggestions" type="array">
+  Array of 2-3 suggested follow-up questions (strings, max 50 characters each)
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "suggestions": [
+    "What was your life like as a patent clerk?",
+    "How did you visualize riding a beam of light?",
+    "When did you realize time was relative?"
+  ]
+}
+```
+
+### Error Responses
+
+#### Missing Figure ID
+```json
+{
+  "error": "No figure_id provided"
+}
+```
+**Status Code:** `400`
+
+#### Figure Not Found
+```json
+{
+  "error": "Figure not found"
+}
+```
+**Status Code:** `404`
+
+### Fallback Behavior
+
+If the AI fails to generate suggestions or returns invalid data, the API returns generic fallback suggestions:
+
+```json
+{
+  "suggestions": [
+    "Tell me more about that.",
+    "What was your perspective on that?",
+    "How did that affect you?"
+  ]
+}
+```
+
+---
+
+## Implementation Details
+
+### Optimization
+
+The suggestions endpoint is optimized for speed:
+
+- Uses a dedicated fast function `call_llm_suggestions()` instead of the full `call_llm()` with retry logic
+- Default timeout: 10 seconds (vs 30 seconds for regular chat)
+- Uses fast, efficient models by default (Llama 3.3 70B)
+- Max tokens limited to 150 (vs 500 for chat)
+- Temperature set to 0.7 for balanced creativity
+
+### Context Handling
+
+- **History limit**: Only the last 4 messages from history are used for context
+- **Response truncation**: Last response is truncated to 500 characters to fit in the prompt
+- **Conversation context**: The prompt includes both the user and assistant messages to understand the flow
+
+### Response Parsing
+
+The API extracts questions from the AI response:
+
+1. Splits response by newlines
+2. Strips numbering/bullets (`1.`, `-`, `•`, `*`)
+3. Filters out very short lines (< 10 characters)
+4. Returns the first 3 valid suggestions
+5. Falls back to generic suggestions if parsing fails
+
+### Prompt Format
+
+The AI receives a system prompt and user prompt:
+
+**System Prompt:**
+```
+Generate 2-3 short conversation questions. Return only questions, one per line.
+```
+
+**User Prompt:**
+```
+Generate 2-3 short follow-up questions (under 50 chars each) for a conversation with {figure_name}.
+
+Last exchange:
+{recent_conversation_context}
+
+Return ONLY the questions, one per line, no numbering.
+```
+
+---
+
+## Usage Tips
+
+### When to Call
+
+- After receiving a response from the figure
+- To help users who are unsure what to ask next
+- To suggest deeper or related topics
+
+### Display
+
+- Show as clickable buttons or chips in your UI
+- Allow users to click to auto-fill the message input
+- Optionally hide after the user sends their own message
+
+### Performance
+
+- Call this endpoint in parallel with displaying the figure's response
+- Cache suggestions briefly if the conversation continues rapidly
+- Don't block the UI waiting for suggestions - show them when ready
+
+### Example Implementation
+
+```javascript
+// Fetch suggestions after receiving a response
+async function getSuggestions(figureId, history, lastResponse) {
+  try {
+    const response = await fetch('http://localhost:5000/api/suggestions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        figure_id: figureId,
+        history: history,
+        last_response: lastResponse
+      })
+    });
+    
+    const data = await response.json();
+    return data.suggestions;
+  } catch (error) {
+    console.error('Failed to get suggestions:', error);
+    // Use fallback suggestions
+    return [
+      "Tell me more about that.",
+      "What was your perspective on that?",
+      "How did that affect you?"
+    ];
+  }
+}
+
+// Display suggestions as clickable buttons
+function displaySuggestions(suggestions) {
+  const container = document.getElementById('suggestions');
+  container.innerHTML = '';
+  
+  suggestions.forEach(suggestion => {
+    const button = document.createElement('button');
+    button.textContent = suggestion;
+    button.onclick = () => {
+      document.getElementById('message-input').value = suggestion;
+    };
+    container.appendChild(button);
+  });
+}
+```
+
+---
+
+## Related Endpoints
+
+- [POST /api/chat](/api/chat) - Send messages and receive responses
+- [POST /api/dinner-party/suggestions](/api/dinner-party#post-apidinner-partysuggestions) - Get suggestions for multi-guest conversations

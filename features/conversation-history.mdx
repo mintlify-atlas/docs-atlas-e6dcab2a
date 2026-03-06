@@ -1,0 +1,481 @@
+---
+title: "Conversation History"
+description: "Save, resume, branch, and manage your conversations with historical figures"
+---
+
+# Conversation History
+
+SeanceAI provides robust conversation management features that let you save, resume, branch, and organize your discussions with historical figures. Never lose a fascinating conversation again.
+
+## Features Overview
+
+<CardGroup cols={2}>
+  <Card title="Auto-Save" icon="floppy-disk">
+    Conversations automatically save to your browser's local storage as you chat
+  </Card>
+  
+  <Card title="Resume Anytime" icon="play">
+    Pick up exactly where you left off in any previous conversation
+  </Card>
+  
+  <Card title="Branch Conversations" icon="code-branch">
+    Create alternate timelines from any message to explore different directions
+  </Card>
+  
+  <Card title="Export & Share" icon="share-nodes">
+    Download conversations as text files or share via links
+  </Card>
+</CardGroup>
+
+## Auto-Save System
+
+Every conversation is automatically saved to your browser's localStorage:
+
+### What Gets Saved
+
+- **Message history**: Full conversation with both user and AI messages
+- **Figure information**: Current figure or dinner party guests
+- **Timestamps**: Last update time for sorting
+- **Branch data**: All conversation branches and their names
+- **Model selection**: Which AI model was used
+
+### Storage Details
+
+```javascript
+// Conversations stored with this structure
+{
+  id: 'conv-1234567890-abc123',
+  figure_id: 'einstein',
+  figure_name: 'Albert Einstein',
+  timestamp: '2026-03-06T10:30:00.000Z',
+  history: [
+    { role: 'user', content: 'What inspired your theory of relativity?' },
+    { role: 'assistant', content: 'Ah, a wonderful question...' }
+  ],
+  branches: {
+    'main': { name: 'Main', history: [...] },
+    'branch-1': { name: 'Quantum Debate', history: [...] }
+  },
+  current_branch_id: 'main'
+}
+```
+
+<Info>
+  Auto-save happens after each exchange, so you never lose progress even if you close the browser.
+</Info>
+
+## Managing Saved Conversations
+
+### Access Saved Conversations Panel
+
+Click the "Saved Conversations" button (clock icon) in the header to open the panel.
+
+### Panel Features
+
+<Steps>
+  <Step title="View All Conversations">
+    See a list of all saved conversations sorted by most recent first
+  </Step>
+  
+  <Step title="Search & Filter">
+    Find specific conversations by figure name or content
+  </Step>
+  
+  <Step title="Resume">
+    Click any conversation to resume exactly where you left off
+  </Step>
+  
+  <Step title="Delete">
+    Remove conversations you no longer need to free up space
+  </Step>
+</Steps>
+
+### Conversation List Display
+
+Each saved conversation shows:
+
+```html
+<div class="saved-conversation-item">
+  <img src="/static/images/figures/einstein.svg" />
+  <div>
+    <strong>Albert Einstein</strong>
+    <span>Last updated: 5 minutes ago</span>
+    <p>Preview: What inspired your theory of relativity?...</p>
+  </div>
+  <button>Resume</button>
+  <button>Delete</button>
+</div>
+```
+
+## Conversation Branching
+
+Branching allows you to explore alternate conversation paths from any message point.
+
+### Why Branch?
+
+- **Explore alternatives**: "What if I had asked differently?"
+- **Compare perspectives**: Get multiple takes on the same question
+- **Safe experimentation**: Try controversial topics without affecting main conversation
+- **Parallel discussions**: Maintain multiple threads on different subjects
+
+### How to Create a Branch
+
+<Steps>
+  <Step title="Find Your Branch Point">
+    Locate the message where you want to diverge. Look for the branch button (🌿) next to each message.
+  </Step>
+  
+  <Step title="Click Branch Button">
+    A prompt appears asking for a branch name.
+  </Step>
+  
+  <Step title="Name Your Branch">
+    Choose a descriptive name like "Quantum Debate" or "Alternative Theory"
+  </Step>
+  
+  <Step title="Continue Conversation">
+    The conversation continues from that point in your new branch
+  </Step>
+</Steps>
+
+<Note>
+  The branch button appears on all messages except the welcome message. You need to send at least one message before branching.
+</Note>
+
+### Branch Management
+
+**Branch Selector**: Dropdown in the conversation header shows all branches
+
+```javascript
+// Example branch structure
+conversationBranches = {
+  'main': {
+    name: 'Main',
+    history: [...]
+  },
+  'branch-abc123': {
+    name: 'Quantum Debate',
+    parent_branch_id: 'main',
+    branch_point: 5, // Message index
+    history: [...]
+  }
+}
+```
+
+### Switching Between Branches
+
+1. Click the branch selector dropdown
+2. Select the branch you want to view
+3. Conversation updates to show that branch's history
+4. Continue chatting in the selected branch
+
+<Info>
+  Each branch maintains its own message history from the branch point forward. Messages before the branch point are shared across all branches.
+</Info>
+
+## History Limits
+
+### Context Window
+
+To optimize AI performance and response quality:
+
+- **Maximum history**: Last 20 messages sent to AI
+- **Full history displayed**: All messages shown in UI
+- **Branching available**: From any message in full history
+
+```python
+# In app.py
+MAX_HISTORY = 20  # Maximum number of messages to keep in history
+
+# Add conversation history (limited to last MAX_HISTORY messages)
+for msg in history[-MAX_HISTORY:]:
+    messages.append({
+        "role": msg.get("role", "user"),
+        "content": msg.get("content", "")
+    })
+```
+
+<Note>
+  While only the last 20 messages are sent to the AI for context, your full conversation history is preserved for viewing and branching.
+</Note>
+
+## Export & Sharing
+
+### Copy to Clipboard
+
+Copy formatted conversation text:
+
+```javascript
+async function copyConversation() {
+  const history = getCurrentHistory();
+  let text = `Conversation with ${state.currentFigure.name}\n`;
+  text += `${'='.repeat(40)}\n\n`;
+  
+  history.forEach(msg => {
+    const author = msg.role === 'user' ? 'You' : state.currentFigure.name;
+    text += `${author}: ${msg.content}\n\n`;
+  });
+  
+  await navigator.clipboard.writeText(text);
+}
+```
+
+### Download as Text File
+
+Download conversation with metadata:
+
+```
+=====================================
+Conversation with Albert Einstein
+=====================================
+Date: March 6, 2026
+Model: Gemma 3 12B
+Branch: Main
+=====================================
+
+You: What inspired your theory of relativity?
+
+Albert Einstein: *adjusts spectacles thoughtfully* Ah, what a wonderful question...
+
+...
+
+=====================================
+Exported from SeanceAI
+https://seanceai.example.com
+=====================================
+```
+
+### Share via Link
+
+Generate shareable links that include:
+
+- Full conversation history
+- Figure or dinner party information
+- Current branch (if applicable)
+
+**Share Flow**:
+
+<Steps>
+  <Step title="Click Share Button">
+    Located in conversation header
+  </Step>
+  
+  <Step title="Link Generated">
+    Creates unique share ID and stores data in localStorage
+  </Step>
+  
+  <Step title="Copy & Share">
+    Link automatically copied to clipboard
+  </Step>
+  
+  <Step title="Recipients Open Link">
+    Conversation loads with full history in read-only mode
+  </Step>
+</Steps>
+
+```javascript
+// Share link format
+const shareUrl = `${window.location.origin}#share=share-1234567890-abc123`;
+
+// Share data stored temporarily
+const shareData = {
+  type: 'seance',
+  figure_id: 'einstein',
+  figure_name: 'Albert Einstein',
+  history: [...],
+  branch_id: 'main',
+  timestamp: new Date().toISOString()
+};
+```
+
+<Info>
+  Share links are stored in localStorage and cleaned up automatically (last 10 kept). For permanent sharing, use the download feature.
+</Info>
+
+## Dinner Party History
+
+Dinner party conversations have slightly different management:
+
+### Differences from Seance Mode
+
+- **Multiple guests**: History includes guest IDs with responses
+- **No branching**: Branching currently only available in 1-on-1 mode
+- **Guest list saved**: All selected guests preserved for resuming
+
+### Dinner Party Storage
+
+```javascript
+{
+  id: 'party-1234567890-abc123',
+  type: 'dinner-party',
+  guests: ['einstein', 'bohr', 'heisenberg'],
+  guest_names: 'Einstein, Bohr, Heisenberg',
+  timestamp: '2026-03-06T10:30:00.000Z',
+  history: [
+    { role: 'user', content: 'What is quantum reality?' },
+    { 
+      role: 'assistant', 
+      content: '[einstein]: Fascinating question...\n\n[bohr]: I must disagree...'
+    }
+  ]
+}
+```
+
+## Storage Management
+
+### Browser Storage Limits
+
+LocalStorage typically has 5-10MB limit:
+
+- **Average conversation**: ~50KB
+- **Estimated capacity**: 100-200 conversations
+- **Auto-cleanup**: Oldest conversations removed if storage full
+
+### Manual Cleanup
+
+<Accordion title="Delete Individual Conversations">
+  Open saved conversations panel and click delete button on conversations you no longer need.
+</Accordion>
+
+<Accordion title="Clear All Data">
+  Use browser developer tools to clear localStorage:
+  ```javascript
+  // Clear all SeanceAI data
+  Object.keys(localStorage)
+    .filter(key => key.startsWith('seanceai-'))
+    .forEach(key => localStorage.removeItem(key));
+  ```
+</Accordion>
+
+<Accordion title="Export Before Deleting">
+  Download important conversations before clearing to preserve them permanently.
+</Accordion>
+
+## Privacy & Security
+
+<Note>
+  All conversation history is stored **locally in your browser**. Nothing is stored on SeanceAI servers.
+</Note>
+
+### What This Means
+
+- ✅ **Private**: Only you can access your conversations
+- ✅ **Portable**: Conversations stay on your device
+- ⚠️ **Device-specific**: Different devices have different histories
+- ⚠️ **Clearable**: Clearing browser data removes conversations
+
+### Best Practices
+
+1. **Export important conversations**: Download meaningful discussions
+2. **Use multiple devices cautiously**: History won't sync automatically
+3. **Don't clear browser data**: Unless you've exported what you need
+4. **Share links expire**: They rely on localStorage cleanup
+
+## API Integration
+
+### History Format
+
+When sending history to API endpoints:
+
+```javascript
+const history = [
+  { role: 'user', content: 'User message' },
+  { role: 'assistant', content: 'AI response' },
+  { role: 'user', content: 'Next user message' }
+];
+
+// Send with request
+fetch('/api/chat', {
+  method: 'POST',
+  body: JSON.stringify({
+    figure_id: 'einstein',
+    message: 'New message',
+    history: history.slice(-20), // Last 20 only
+    model: 'google/gemma-3-12b-it:free'
+  })
+});
+```
+
+### Conversation ID Generation
+
+```javascript
+function generateConversationId() {
+  return 'conv-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+}
+
+// Example: 'conv-1234567890-abc123def'
+```
+
+## Troubleshooting
+
+<Accordion title="Conversation not saving">
+  **Possible causes:**
+  - Browser localStorage disabled
+  - Privacy mode/incognito window (storage cleared on close)
+  - Storage quota exceeded
+  
+  **Solutions:**
+  - Check browser privacy settings
+  - Use normal browsing mode
+  - Delete old conversations to free space
+</Accordion>
+
+<Accordion title="Cannot resume conversation">
+  **Possible causes:**
+  - Conversation data corrupted
+  - Browser cache cleared
+  - localStorage manually cleared
+  
+  **Solutions:**
+  - Check browser console for errors
+  - Try refreshing the page
+  - Start a new conversation if data is lost
+</Accordion>
+
+<Accordion title="Branch not appearing">
+  **Possible causes:**
+  - No conversation ID assigned yet (need to send first message)
+  - Dinner party mode (branching not available)
+  - Browser JavaScript error
+  
+  **Solutions:**
+  - Send at least one message before branching
+  - Use Seance Mode for branching feature
+  - Check browser console for errors
+</Accordion>
+
+<Accordion title="Share link not working">
+  **Possible causes:**
+  - Share data expired (localStorage cleanup)
+  - Opened on different device/browser
+  - localStorage cleared
+  
+  **Solutions:**
+  - Use download feature for permanent sharing
+  - Re-share to create new link
+  - Share URL must be opened on same device within cleanup window
+</Accordion>
+
+## Tips for Organization
+
+1. **Use descriptive branch names**: "Quantum Mechanics" vs "Branch 1"
+2. **Export significant conversations**: Don't rely solely on localStorage
+3. **Periodically review saved conversations**: Delete ones you don't need
+4. **Take notes externally**: For academic or research purposes
+5. **Share interesting exchanges**: Help others discover great conversations
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Start Chatting" icon="comments" href="/features/seance-mode">
+    Begin conversations that auto-save
+  </Card>
+  
+  <Card title="Explore Figures" icon="users" href="/features/historical-figures">
+    Find figures to talk with
+  </Card>
+  
+  <Card title="Host a Party" icon="utensils" href="/features/dinner-party-mode">
+    Create group conversation histories
+  </Card>
+</CardGroup>

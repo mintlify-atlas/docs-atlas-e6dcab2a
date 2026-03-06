@@ -1,0 +1,404 @@
+---
+title: 'Adding Historical Figures'
+description: 'Step-by-step guide to adding new historical figures to SeanceAI'
+---
+
+## Overview
+
+Adding a new historical figure to SeanceAI involves defining their personality, beliefs, and conversation style in the `figures.py` file. Each figure is powered by the same AI models but responds differently based on their unique system prompt.
+
+## Figure Data Structure
+
+Every historical figure in SeanceAI is defined in the `HISTORICAL_FIGURES` dictionary in `figures.py`.
+
+### Required Fields
+
+```python
+"figure_id": {
+    "id": "figure_id",                    # Unique identifier (lowercase, no spaces)
+    "name": "Full Name",                  # Display name
+    "title": "Role/Profession",           # Brief title or profession
+    "birth_year": 1879,                   # Birth year (use negative for BCE)
+    "death_year": 1955,                   # Death year (determines knowledge cutoff)
+    "era": "Modern Era",                  # Historical period
+    "personality": "...",                 # Speaking style and character traits
+    "beliefs": "...",                     # Core values and documented opinions
+    "tagline": "Short descriptor",       # Brief, memorable phrase
+    "starter_questions": [                # 5 conversation starters
+        "Question 1?",
+        "Question 2?",
+        "Question 3?",
+        "Question 4?",
+        "Question 5?"
+    ]
+}
+```
+
+### Example: Albert Einstein
+
+```python:figures.py:33-50
+"einstein": {
+    "id": "einstein",
+    "name": "Albert Einstein",
+    "title": "Theoretical Physicist",
+    "birth_year": 1879,
+    "death_year": 1955,
+    "era": "Modern Era",
+    "personality": "Curious, witty, humble yet confident. Speaks with a gentle German accent influence. Loves thought experiments and uses analogies to explain complex ideas. Has a playful sense of humor and often makes self-deprecating jokes. Tends to go off on tangents about the beauty of the universe.",
+    "beliefs": "Pacifist who opposed war and nationalism. Believer in cosmic religious feeling and the harmony of natural law. Skeptical of quantum randomness ('God does not play dice'). Strong advocate for civil rights, education, and individual freedom. Believed imagination is more important than knowledge.",
+    "tagline": "Father of Relativity, Nobel Laureate",
+    "starter_questions": [
+        "What inspired your theory of relativity?",
+        "How did you feel when you learned your work contributed to the atomic bomb?",
+        "Did you really fail math class, and what was school like for you?",
+        "What was your relationship with Niels Bohr like during your quantum debates?",
+        "What would you think about machines that can learn and 'think' for themselves?"
+    ]
+},
+```
+
+## The Figure Prompt Template
+
+All figures use this template to generate their system prompt:
+
+```python:figures.py:5-30
+FIGURE_PROMPT_TEMPLATE = """You are {name}, {title}, who lived from {birth_year} to {death_year}.
+
+PERSONALITY & SPEAKING STYLE:
+{personality}
+
+KNOWN BELIEFS & VALUES:
+{beliefs}
+
+HISTORICAL CONTEXT:
+- You have knowledge of events up to {death_year}
+- You do NOT know about anything that happened after your death
+- When asked about modern concepts, react with genuine curiosity appropriate to your era
+
+ROLEPLAY RULES:
+- Stay in character at all times
+- Use speech patterns and vocabulary appropriate to your era and background
+- Reference your real historical experiences, works, and relationships
+- Express your documented opinions and beliefs authentically
+- If asked about something after your time, express confusion or ask the user to explain
+
+CONVERSATION STYLE:
+- Be engaging and conversational, not lecturing
+- Ask the user questions back to create dialogue
+- Show your personality through your responses
+- Keep responses to 2-3 paragraphs maximum unless asked for detail
+"""
+```
+
+## Step-by-Step Guide
+
+<Steps>
+
+### Step 1: Research Your Figure
+
+Gather authentic information about the historical figure:
+
+- **Biography**: Birth/death years, major life events
+- **Personality**: How did they speak? Were they formal or casual?
+- **Beliefs**: What were their documented opinions and values?
+- **Speaking Style**: Did they use humor? Were they verbose or concise?
+- **Historical Context**: What major events occurred during their lifetime?
+- **Known Works**: What are they famous for?
+
+**Tip**: Use primary sources like letters, speeches, and contemporaneous accounts.
+
+### Step 2: Create a Figure ID
+
+Choose a unique identifier:
+- Lowercase only
+- No spaces (use underscores if needed)
+- Usually the last name or a short memorable version
+- Examples: `einstein`, `cleopatra`, `davinci`, `kjohnson`
+
+### Step 3: Write the Personality Description
+
+Capture their authentic voice:
+
+**Good Personality Description:**
+```python
+"personality": "Fearless and determined with unshakeable faith in God's protection. Speaks directly and practically, with no patience for excuses. Has a commanding presence despite small stature. Uses spirituals and coded language. Combines tender compassion with iron discipline."
+```
+
+**What to Include:**
+- Speaking patterns (formal, casual, poetic, direct)
+- Personality traits (curious, confident, humble, witty)
+- Verbal habits or quirks
+- Emotional tone (serious, playful, melancholic)
+- Any accent or language influences
+
+### Step 4: Document Their Beliefs
+
+Capture their worldview and values:
+
+**Good Beliefs Description:**
+```python
+"beliefs": "Believed freedom was a God-given right worth dying for. Trusted completely in divine guidance and visions. Valued community, mutual aid, and collective liberation. Believed in armed resistance when necessary. Saw no contradiction between Christian faith and militant action against injustice."
+```
+
+**What to Include:**
+- Core values and moral beliefs
+- Political or religious views
+- Documented opinions on major issues
+- What they dedicated their life to
+- How they viewed their own work
+
+### Step 5: Choose an Era
+
+Select the appropriate historical period:
+
+- **Ancient World** (Before 500 CE): Cleopatra, Socrates, Caesar, Archimedes
+- **Medieval Era** (500-1500): Genghis Khan
+- **Renaissance** (1400-1650): Da Vinci, Shakespeare, Galileo
+- **17th-18th Century**: Newton, Franklin
+- **19th Century**: Lincoln, Darwin, Ada Lovelace, Tesla
+- **Modern Era** (1900+): Einstein, Curie, Hawking, Frida Kahlo
+
+### Step 6: Write Starter Questions
+
+Create 5 engaging conversation starters:
+
+**Guidelines:**
+- Mix biographical questions with philosophical ones
+- Include questions about famous events or works
+- Add a modern perspective question ("What would you think of...?")
+- Make them specific to the figure's life and work
+- Keep them conversational and interesting
+
+**Example for Marie Curie:**
+```python
+"starter_questions": [
+    "What was it like the moment you discovered radium?",
+    "How did you overcome the barriers facing women in science?",
+    "What drove your relentless dedication to research despite the toll on your health?",
+    "How did you feel winning two Nobel Prizes in different sciences?",
+    "What advice would you give to young women pursuing careers in STEM today?"
+]
+```
+
+### Step 7: Add to figures.py
+
+Open `figures.py` and add your figure to the `HISTORICAL_FIGURES` dictionary:
+
+```python
+HISTORICAL_FIGURES = {
+    # ... existing figures ...
+    
+    "your_figure_id": {
+        "id": "your_figure_id",
+        "name": "Your Figure Name",
+        "title": "Their Role",
+        "birth_year": 1900,
+        "death_year": 2000,
+        "era": "Modern Era",
+        "personality": "Detailed personality description...",
+        "beliefs": "Their core beliefs and values...",
+        "tagline": "Brief memorable descriptor",
+        "starter_questions": [
+            "Question 1?",
+            "Question 2?",
+            "Question 3?",
+            "Question 4?",
+            "Question 5?"
+        ]
+    },
+    
+    # ... more figures ...
+}
+```
+
+### Step 8: Create an SVG Portrait (Optional)
+
+Add a portrait for visual appeal:
+
+1. Create or find an SVG portrait of your figure
+2. Save it to `static/images/figures/your_figure_id.svg`
+3. Ensure the SVG is optimized and has appropriate dimensions
+4. The app will automatically display the portrait in the UI
+
+### Step 9: Test Your Figure
+
+Conduct thorough testing:
+
+<Tabs>
+  <Tab title="Local Testing">
+    ```bash
+    python app.py
+    ```
+    Navigate to `http://localhost:5000` and select your new figure.
+  </Tab>
+  
+  <Tab title="API Testing">
+    ```bash
+    curl -X POST http://localhost:5000/api/chat \
+      -H "Content-Type: application/json" \
+      -d '{
+        "figure_id": "your_figure_id",
+        "message": "Hello!",
+        "history": []
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+**Test For:**
+- ✅ Stays in character throughout conversation
+- ✅ Uses era-appropriate vocabulary and references
+- ✅ Doesn't know about events after their death year
+- ✅ Expresses curiosity about modern concepts
+- ✅ References their historical experiences and works
+- ✅ Matches the documented personality and beliefs
+- ✅ Asks engaging follow-up questions
+
+### Step 10: Refine and Iterate
+
+Based on testing, refine:
+
+- **If too formal**: Add more conversational phrases to personality
+- **If breaking character**: Strengthen the beliefs section with more specific values
+- **If too modern**: Emphasize their historical context and era
+- **If too verbose**: Add "Keep responses concise" to personality
+- **If not asking questions**: Add "Engage users with thoughtful questions" to personality
+
+</Steps>
+
+## Historical Accuracy Tips
+
+### Era-Appropriate Knowledge
+
+The `death_year` field is critical:
+
+```python
+"birth_year": 1879,
+"death_year": 1955,  # Einstein died in 1955
+```
+
+This ensures Einstein:
+- ✅ Knows about WWII and the atomic bomb
+- ✅ Knows about quantum mechanics debates
+- ❌ Doesn't know about the moon landing (1969)
+- ❌ Doesn't know about modern AI or computers
+
+### BCE Dates
+
+Use negative numbers for BCE dates:
+
+```python
+"cleopatra": {
+    "birth_year": -69,   # 69 BCE
+    "death_year": -30,   # 30 BCE
+    "era": "Ancient World"
+}
+```
+
+### Authentic Reactions to Modern Concepts
+
+When users mention modern things, figures should:
+
+**Good Response (Cleopatra asked about smartphones):**
+> "A device that fits in your hand and can send messages across the world instantly? That sounds like the work of Hermes himself! And you say it can also store entire libraries of knowledge? Tell me, how does this 'smartphone' achieve such miraculous feats?"
+
+**Bad Response:**
+> "Smartphones are amazing! I can see how they've revolutionized communication."
+
+## Common Mistakes to Avoid
+
+<Warning>
+  **Anachronistic Knowledge**: Don't let figures know about events after their death.
+  
+  Example: Tesla (died 1943) shouldn't know about transistors or modern computing.
+</Warning>
+
+<Warning>
+  **Generic Personalities**: Avoid vague descriptions like "smart and interesting."
+  
+  Be specific: "Obsessed with numbers 3, 6, and 9. Visualizes inventions completely before building."
+</Warning>
+
+<Warning>
+  **Modern Language**: Avoid contemporary slang or references in personality descriptions.
+  
+  Bad: "Was basically the Steve Jobs of Renaissance art."
+  
+  Good: "Endlessly curious polymath who saw no boundary between art and science."
+</Warning>
+
+<Warning>
+  **Fictional Traits**: Only include documented personality traits and beliefs.
+  
+  Use biographies, letters, and historical accounts as sources.
+</Warning>
+
+## Example: Adding Ada Lovelace
+
+Here's how Ada Lovelace was added to the system:
+
+```python:figures.py:249-266
+"ada": {
+    "id": "ada",
+    "name": "Ada Lovelace",
+    "title": "Mathematician and First Computer Programmer",
+    "birth_year": 1815,
+    "death_year": 1852,
+    "era": "19th Century",
+    "personality": "Brilliant and imaginative with a poetic mind applied to mathematics. Speaks with Victorian elegance but has a rebellious streak inherited from her father, Lord Byron. Fascinated by the intersection of science and imagination. Can be intense and prone to grand visions of the future. Deeply curious about how machines might think.",
+    "beliefs": "Believed machines could go beyond mere calculation to create art and music. Valued the unity of poetic imagination and scientific rigor. Advocated for women's education in mathematics and science. Saw herself as an 'Analyst and Metaphysician.' Believed in the power of systematic thinking to unlock nature's secrets.",
+    "tagline": "Enchantress of Numbers, Pioneer of Computing",
+    "starter_questions": [
+        "What did you envision for Babbage's Analytical Engine?",
+        "How did being Lord Byron's daughter influence your thinking?",
+        "Could machines ever truly think or create original works?",
+        "What was your collaboration with Charles Babbage like?",
+        "What would you think of artificial intelligence that can write poetry and compose music today?"
+    ]
+},
+```
+
+**Why This Works:**
+- Captures her unique blend of mathematical and poetic thinking
+- References her father (Lord Byron) for historical context
+- Includes her own terminology ("Analyst and Metaphysician")
+- Era-appropriate vocabulary ("Victorian elegance")
+- Forward-thinking questions about machines and creativity
+- Last question connects to modern AI in her domain of interest
+
+## Testing Checklist
+
+Before submitting your new figure:
+
+- [ ] All required fields are present and properly formatted
+- [ ] Birth/death years are accurate
+- [ ] Personality description is specific and detailed
+- [ ] Beliefs reflect documented historical views
+- [ ] Era is correctly categorized
+- [ ] Starter questions are engaging and varied
+- [ ] Tagline is memorable and accurate
+- [ ] Figure stays in character during test conversations
+- [ ] Figure doesn't know about post-death events
+- [ ] Figure reacts authentically to modern concepts
+- [ ] Speaking style matches historical documentation
+- [ ] SVG portrait exists (if applicable)
+
+## Need Help?
+
+If you're unsure about any aspect of adding a figure:
+
+1. **Review existing figures** in `figures.py` for examples
+2. **Test thoroughly** with various conversation topics
+3. **Research primary sources** for authentic personality traits
+4. **Ask for feedback** by opening a GitHub discussion
+
+## Next Steps
+
+After adding your figure:
+
+1. **Test thoroughly** with diverse conversation topics
+2. **Open a Pull Request** with your additions
+3. **Include testing notes** showing the figure stays in character
+4. **Add to curated combos** if your figure would work well in dinner parties
+
+See the [Contributing Guide](/guides/contributing) for more details on submitting your additions.

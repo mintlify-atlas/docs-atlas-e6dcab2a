@@ -1,0 +1,348 @@
+---
+title: Features
+description: Discover everything SeanceAI has to offer
+---
+
+# Features Overview
+
+SeanceAI is packed with features designed to make conversations with historical figures feel authentic, engaging, and educational.
+
+## Core Features
+
+<CardGroup cols={2}>
+  <Card title="Seance Mode" icon="crystal-ball">
+    **One-on-one conversations** with any of 60+ historical figures. Ask questions, discuss ideas, and explore their unique perspectives in intimate dialogue.
+  </Card>
+  
+  <Card title="Dinner Party Mode" icon="users">
+    **Multi-figure discussions** with 2-5 historical guests. Watch as they debate, agree, disagree, and respond to each other authentically.
+  </Card>
+  
+  <Card title="60+ Historical Figures" icon="book">
+    Converse with legends from **Ancient World, Renaissance, 19th Century, and Modern Era**. Each figure meticulously crafted with unique personality and knowledge.
+  </Card>
+  
+  <Card title="Streaming Responses" icon="stream">
+    **Real-time streaming** using Server-Sent Events (SSE) for natural, flowing conversations. See responses appear word-by-word as the AI generates them.
+  </Card>
+</CardGroup>
+
+## Authentic Historical Personas
+
+### Era-Appropriate Knowledge
+
+Each historical figure knows only what they would have known during their lifetime:
+
+```python
+# From app.py - System prompt ensures historical accuracy
+system_prompt = get_system_prompt(figure_id)
+messages = [{"role": "system", "content": system_prompt}]
+```
+
+<Note>
+  Figures don't have knowledge of events after their death, creating authentic historical perspectives.
+</Note>
+
+### Unique Personalities
+
+- **Speaking styles** match each figure's documented communication patterns
+- **Vocabulary** appropriate to their time period and profession
+- **Personality traits** based on historical research
+- **Genuine reactions** to modern concepts they wouldn't understand
+
+### Historical Figures Available
+
+<AccordionGroup>
+  <Accordion title="Ancient World">
+    Cleopatra, Julius Caesar, Socrates, Plato, Aristotle, Archimedes, Sun Tzu, Confucius, Alexander the Great, and more.
+  </Accordion>
+
+  <Accordion title="Renaissance Era">
+    Leonardo da Vinci, Michelangelo, Galileo Galilei, Nicolaus Copernicus, Johannes Kepler, William Shakespeare, and more.
+  </Accordion>
+
+  <Accordion title="19th Century">
+    Abraham Lincoln, Charles Darwin, Nikola Tesla, Marie Curie, Napoleon Bonaparte, Ada Lovelace, Florence Nightingale, and more.
+  </Accordion>
+
+  <Accordion title="Modern Era (20th Century)">
+    Albert Einstein, Alan Turing, Stephen Hawking, Richard Feynman, Carl Sagan, Rosalind Franklin, and more.
+  </Accordion>
+</AccordionGroup>
+
+## Intelligent Conversation Features
+
+### Contextual Suggestions
+
+AI-generated follow-up questions based on the current conversation:
+
+```python
+# From app.py - Generates contextual suggestions
+@app.route('/api/suggestions', methods=['POST'])
+def api_suggestions():
+    # Analyzes conversation history and last response
+    # Returns 2-3 relevant follow-up questions
+    return jsonify({"suggestions": suggestions})
+```
+
+<Info>
+  Suggestions are tailored to each conversation, helping you explore deeper topics or change direction naturally.
+</Info>
+
+### Conversation History
+
+SeanceAI maintains context throughout your conversation:
+
+```python
+# From app.py - History management
+MAX_HISTORY = 20  # Keep last 20 messages for context
+
+# Build messages with history
+for msg in history[-MAX_HISTORY:]:
+    messages.append({
+        "role": msg.get("role", "user"),
+        "content": msg.get("content", "")
+    })
+```
+
+- **Maintains context** for natural, flowing dialogue
+- **References previous exchanges** in responses
+- **Remembers topics discussed** earlier in the conversation
+
+### Save & Export
+
+- **LocalStorage persistence** - conversations automatically saved in browser
+- **Export to text** - download conversations for later reference
+- **Resume anytime** - return to saved conversations
+
+## Advanced AI Capabilities
+
+### Multi-Model Support
+
+SeanceAI integrates with OpenRouter to provide access to multiple AI models:
+
+```python
+# From app.py - Available models organized by tier
+AVAILABLE_MODELS = [
+    # Swift tier - fast and responsive (free models)
+    {"id": "google/gemma-3-12b-it:free", "name": "Gemma 3 12B", "tier": "swift"},
+    {"id": "meta-llama/llama-3.3-70b-instruct:free", "name": "Llama 3.3 70B", "tier": "swift"},
+    
+    # Balanced tier - good mix of speed and capability
+    {"id": "openai/gpt-4o-mini", "name": "GPT-4o Mini", "tier": "balanced"},
+    {"id": "anthropic/claude-3.5-haiku", "name": "Claude 3.5 Haiku", "tier": "balanced"},
+    
+    # Advanced tier - most capable models
+    {"id": "anthropic/claude-sonnet-4", "name": "Claude Sonnet 4", "tier": "advanced"},
+    {"id": "openai/gpt-4o", "name": "GPT-4o", "tier": "advanced"},
+]
+```
+
+**Three Capability Tiers:**
+
+<CardGroup cols={3}>
+  <Card title="Swift" icon="bolt">
+    Fast, responsive free models. Great for quick conversations. Includes Gemma 3 and Llama 3.3.
+  </Card>
+  
+  <Card title="Balanced" icon="scale-balanced">
+    Mix of speed and capability. Includes GPT-4o Mini and Claude Haiku.
+  </Card>
+  
+  <Card title="Advanced" icon="star">
+    Most capable models for complex discussions. Includes GPT-4o and Claude Sonnet 4.
+  </Card>
+</CardGroup>
+
+### Automatic Fallback System
+
+Intelligent retry logic handles rate limits gracefully:
+
+```python
+# From app.py - Fallback model handling
+FALLBACK_MODELS = [
+    "google/gemma-3-27b-it:free",
+    "google/gemma-3-4b-it:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "meta-llama/llama-3.1-405b-instruct:free",
+]
+
+MAX_RETRIES = 3
+RETRY_DELAYS = [2, 5, 10]  # Exponential backoff
+```
+
+**How it works:**
+1. Tries your selected model
+2. If rate-limited, waits and retries with exponential backoff
+3. After max retries, automatically switches to fallback models
+4. Ensures you always get a response
+
+<Warning>
+  If all models are rate-limited, you'll see a helpful message to wait or select a different model.
+</Warning>
+
+### Streaming Responses
+
+Real-time response generation using Server-Sent Events:
+
+```python
+# From app.py - Streaming endpoint
+@app.route('/api/chat/stream', methods=['POST'])
+def api_chat_stream():
+    return Response(
+        stream_llm(messages, model),
+        mimetype='text/event-stream',
+        headers={
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'X-Accel-Buffering': 'no'
+        }
+    )
+```
+
+- **Word-by-word generation** for natural conversation feel
+- **Lower latency** - see responses immediately
+- **Better user experience** - no waiting for complete response
+
+## Dinner Party Features
+
+### Multi-Figure Conversations
+
+```python
+# From app.py - Dinner party endpoint
+@app.route('/api/dinner-party/chat', methods=['POST'])
+def api_dinner_party_chat():
+    guest_ids = data.get('guests', [])
+    
+    # Validate 2-5 guests
+    if len(guest_ids) < 2 or len(guest_ids) > 5:
+        return jsonify({"error": "2-5 guests required"})
+    
+    # Build dinner party prompt with all guest personalities
+    system_prompt = get_dinner_party_prompt(guest_ids)
+```
+
+**Features:**
+- **2-5 historical figures** in one conversation
+- **Each responds authentically** to your questions
+- **Figures interact with each other** - debates, agreements, discussions
+- **Dynamic dialogue** that feels like a real dinner party
+
+### Curated Combinations
+
+Pre-selected guest combinations for great discussions:
+
+```python
+# From figures.py - Curated dinner party combinations
+CURATED_COMBOS = [
+    # Scientists & Mathematicians
+    ["einstein", "newton", "tesla"],
+    
+    # Philosophers
+    ["socrates", "plato", "aristotle"],
+    
+    # Renaissance Minds
+    ["davinci", "galileo", "michelangelo"],
+    
+    # And more...
+]
+```
+
+## User Interface
+
+### Museum-Themed Design
+
+- **Elegant dark UI** with gold accents
+- **Beautiful SVG portraits** for every figure
+- **Smooth animations** and transitions
+- **Responsive design** - works on all devices
+
+### Search & Filter
+
+- **Search by name** - quickly find specific figures
+- **Filter by era** - browse by time period
+- **Biographical information** for each figure
+- **Starter questions** to help begin conversations
+
+### Mobile Optimized
+
+- **Fully responsive** layout
+- **Touch-friendly** interface
+- **Optimized for tablets** and phones
+- **Same great experience** across devices
+
+## Health Monitoring
+
+```python
+# From app.py - Health check endpoint
+@app.route('/api/health')
+def api_health():
+    return jsonify({
+        "status": "healthy",
+        "api_key_configured": bool(OPENROUTER_API_KEY)
+    })
+```
+
+Use `/api/health` to:
+- **Monitor service status** for deployments
+- **Check API configuration** before use
+- **Set up uptime monitoring** with services like UptimeRobot
+
+## Educational Use Cases
+
+<CardGroup cols={2}>
+  <Card title="History Education" icon="graduation-cap">
+    Students can interact with figures they're studying, asking questions and exploring historical perspectives firsthand.
+  </Card>
+  
+  <Card title="Critical Thinking" icon="brain">
+    Understanding different perspectives and historical context through authentic dialogue.
+  </Card>
+  
+  <Card title="Language Learning" icon="language">
+    Practice conversations with figures from different eras, experiencing various speaking styles.
+  </Card>
+  
+  <Card title="Creative Writing" icon="pen">
+    Get inspiration from historical voices and perspectives for stories and projects.
+  </Card>
+</CardGroup>
+
+## API Integration
+
+SeanceAI provides a REST API for programmatic access:
+
+### List All Figures
+
+```bash
+curl http://localhost:5000/api/figures
+```
+
+### Get Single Figure
+
+```bash
+curl http://localhost:5000/api/figures/einstein
+```
+
+### Send Chat Message
+
+```bash
+curl -X POST http://localhost:5000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "figure_id": "einstein",
+    "message": "What inspired your theory of relativity?",
+    "history": [],
+    "model": "google/gemma-3-12b-it:free"
+  }'
+```
+
+### List Available Models
+
+```bash
+curl http://localhost:5000/api/models
+```
+
+<Info>
+  All endpoints support optional model selection via the `model` parameter.
+</Info>

@@ -1,0 +1,241 @@
+---
+title: "Seance Mode"
+description: "Have intimate 1-on-1 conversations with historical figures powered by AI"
+---
+
+# Seance Mode
+
+Seance Mode is the core experience of SeanceAI, allowing you to have deep, personal conversations with any of our 60+ historical figures. Each conversation is powered by advanced AI that brings these legendary minds back to life with authentic personalities, beliefs, and speaking styles.
+
+## How It Works
+
+Seance Mode creates an immersive experience where you can:
+
+<Steps>
+  <Step title="Select a Historical Figure">
+    Browse our collection of 60+ figures spanning Ancient World to Modern Era. Use search and era filters to find the perfect conversation partner.
+  </Step>
+  
+  <Step title="Start Your Conversation">
+    The figure "emerges from the cosmic void" with a personalized greeting. Choose from starter questions or ask anything you'd like.
+  </Step>
+  
+  <Step title="Engage in Dialogue">
+    Each figure responds with their authentic personality, vocabulary, and perspectives from their historical era. They'll reference their real experiences, works, and documented beliefs.
+  </Step>
+  
+  <Step title="Get Contextual Suggestions">
+    After each response, receive AI-generated follow-up questions tailored to your conversation to keep the dialogue flowing naturally.
+  </Step>
+</Steps>
+
+## Key Features
+
+### Authentic Historical Personas
+
+Each figure is carefully crafted with:
+
+- **Personality traits**: From Einstein's playful wit to Cleopatra's regal charisma
+- **Speaking style**: Vocabulary and expressions appropriate to their era and background
+- **Historical knowledge**: Awareness only of events up to their death year
+- **Documented beliefs**: Their real philosophical, political, and personal values
+
+<Info>
+  When you ask about modern concepts they couldn't have known, figures react with genuine curiosity appropriate to their time period.
+</Info>
+
+### Streaming Responses
+
+Experience real-time conversation with smooth streaming text that appears as the AI generates it, just like a real chat.
+
+**API Endpoint**: `POST /api/chat/stream`
+
+```javascript
+const response = await fetch('/api/chat/stream', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    figure_id: 'einstein',
+    message: 'What inspired your theory of relativity?',
+    history: conversationHistory,
+    model: 'google/gemma-3-12b-it:free'
+  })
+});
+```
+
+### Conversation History
+
+SeanceAI maintains context throughout your conversation:
+
+- **History tracking**: Up to 20 previous messages kept in context
+- **Auto-save**: Conversations automatically saved to browser storage
+- **Resume anytime**: Return to previous conversations from the saved conversations panel
+- **Branch conversations**: Create alternate timelines from any message point
+
+<Note>
+  History is limited to the last 20 messages to optimize AI performance and response quality.
+</Note>
+
+### AI Model Selection
+
+Choose from multiple AI models organized by capability:
+
+<Tabs>
+  <Tab title="Swift (Free)">
+    Fast, responsive models perfect for most conversations:
+    - Gemma 3 12B
+    - Gemma 3 27B
+    - Llama 3.3 70B
+    - Llama 3.1 405B
+  </Tab>
+  
+  <Tab title="Balanced">
+    High-quality models with great speed-capability balance:
+    - GPT-4o Mini
+    - Claude 3.5 Haiku
+    - DeepSeek V3
+  </Tab>
+  
+  <Tab title="Advanced">
+    Most capable models for nuanced conversations:
+    - Claude Sonnet 4
+    - GPT-4o
+    - Gemini 2.5 Pro
+    - Claude Opus 4
+  </Tab>
+</Tabs>
+
+**API Endpoint**: `GET /api/models`
+
+```json
+{
+  "models": [
+    {
+      "id": "google/gemma-3-12b-it:free",
+      "name": "Gemma 3 12B",
+      "tier": "swift"
+    }
+  ],
+  "default": "google/gemma-3-12b-it:free"
+}
+```
+
+## Conversation Controls
+
+### Navigation
+
+- **Back button**: Return to figure selection
+- **Theme toggle**: Switch between dark and light modes
+- **Model selector**: Change AI model mid-conversation
+
+### Sharing & Export
+
+<Accordion title="Share Conversation">
+  Generate a shareable link or use the Web Share API to share your conversation. Links include the full conversation history and can be opened by anyone.
+  
+  ```javascript
+  // Share via Web Share API (mobile-friendly)
+  await navigator.share({
+    title: `Conversation with ${figureName}`,
+    text: conversationText,
+    url: window.location.origin
+  });
+  ```
+</Accordion>
+
+<Accordion title="Copy to Clipboard">
+  Copy the entire conversation as formatted text for pasting into documents or notes.
+</Accordion>
+
+<Accordion title="Download as Text">
+  Download your conversation as a .txt file with proper formatting and timestamps.
+</Accordion>
+
+### Branch Management
+
+Create alternate conversation paths from any message:
+
+1. Click the branch button (🌿) next to any message
+2. Name your new branch
+3. Continue the conversation in a different direction
+4. Switch between branches using the branch selector
+
+<Note>
+  Branches are perfect for exploring "what if" scenarios or comparing different conversation directions.
+</Note>
+
+## Example Conversation Flow
+
+```javascript
+// 1. Select figure
+const figure = await fetch('/api/figures/einstein').then(r => r.json());
+
+// 2. Send message
+const response = await fetch('/api/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    figure_id: 'einstein',
+    message: 'How did you feel when you learned your work contributed to the atomic bomb?',
+    history: [],
+    model: 'google/gemma-3-12b-it:free'
+  })
+});
+
+const data = await response.json();
+console.log(data.response); // Einstein's authentic response
+
+// 3. Get follow-up suggestions
+const suggestions = await fetch('/api/suggestions', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    figure_id: 'einstein',
+    history: [{ role: 'user', content: '...' }, { role: 'assistant', content: data.response }],
+    last_response: data.response
+  })
+}).then(r => r.json());
+
+console.log(suggestions.suggestions); // ["Tell me more...", "What was your perspective?", ...]
+```
+
+## Tips for Better Conversations
+
+1. **Ask about their experiences**: Reference their real historical events and works
+2. **Explore their beliefs**: Question their documented philosophical and political views
+3. **Challenge their ideas**: Create engaging debates and philosophical discussions
+4. **Use starter questions**: They're crafted to elicit interesting responses
+5. **Follow suggestions**: AI-generated follow-ups help maintain conversation flow
+
+## Technical Details
+
+### Rate Limiting
+
+SeanceAI includes intelligent rate limit handling:
+
+- **Automatic retries**: Up to 3 retries with exponential backoff (2s, 5s, 10s)
+- **Model fallback**: Automatically tries alternative models if primary is rate-limited
+- **Graceful degradation**: Falls back from streaming to regular API if needed
+
+### System Requirements
+
+- Modern web browser with JavaScript enabled
+- Internet connection for API requests
+- localStorage support for conversation saving
+- Optional: Web Share API support for mobile sharing
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Historical Figures" icon="users" href="/features/historical-figures">
+    Browse all 60+ available figures by era
+  </Card>
+  
+  <Card title="Dinner Party Mode" icon="utensils" href="/features/dinner-party-mode">
+    Host conversations with multiple figures
+  </Card>
+  
+  <Card title="Conversation History" icon="clock-rotate-left" href="/features/conversation-history">
+    Learn about saving and managing conversations
+  </Card>
+</CardGroup>

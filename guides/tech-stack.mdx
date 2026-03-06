@@ -1,0 +1,298 @@
+---
+title: 'Technical Architecture'
+description: 'Comprehensive overview of SeanceAI technical stack and architecture'
+---
+
+## Overview
+
+SeanceAI is built with a modern Python backend and vanilla JavaScript frontend, leveraging AI models through the OpenRouter API for authentic historical figure conversations.
+
+## Backend Architecture
+
+### Core Framework
+
+**Flask 3.0.0** - Lightweight Python web framework providing:
+- RESTful API endpoints for figure data and chat interactions
+- Server-Sent Events (SSE) for real-time streaming responses
+- Health check endpoints for deployment monitoring
+- Error handling and request validation
+
+**Key Dependencies**
+```python
+flask==3.0.0
+gunicorn==21.2.0          # Production WSGI server
+gevent==24.2.1           # Async support for streaming
+requests==2.31.0         # HTTP client for OpenRouter API
+python-dotenv==1.0.0     # Environment variable management
+```
+
+### AI Integration
+
+#### OpenRouter API
+
+SeanceAI uses [OpenRouter](https://openrouter.ai/) to access multiple AI models through a single API:
+
+- **Primary Model**: `google/gemma-3-12b-it:free`
+- **Model Categories**:
+  - **Swift Tier** (Free): Gemma 3 models, Llama 3.3 70B, Llama 3.1 405B
+  - **Balanced Tier**: GPT-4o Mini, Claude 3.5 Haiku, DeepSeek V3
+  - **Advanced Tier**: Claude Sonnet 4, GPT-4o, Gemini 2.5 Pro, Claude Opus 4
+
+#### Model Compatibility
+
+Some models don't support the standard `system` role. SeanceAI handles this automatically:
+
+```python:app.py:68-90
+def _convert_system_messages(messages: list, model: str) -> list:
+    """
+    Convert system role messages to user messages for models that don't support the system role.
+    Merges the system prompt into the first user message.
+    """
+    needs_conversion = any(model.startswith(prefix) for prefix in MODELS_WITHOUT_SYSTEM_ROLE)
+    if not needs_conversion:
+        return messages
+
+    converted = []
+    system_content = ""
+    for msg in messages:
+        if msg["role"] == "system":
+            system_content += msg["content"] + "\n"
+        elif msg["role"] == "user" and system_content:
+            converted.append({
+                "role": "user",
+                "content": f"[Instructions: {system_content.strip()}]\n\n{msg['content']}"
+            })
+            system_content = ""
+        else:
+            converted.append(msg)
+    return converted
+```
+
+### Intelligent Model Fallback
+
+SeanceAI implements sophisticated retry logic to ensure reliable service:
+
+#### Rate Limit Handling
+
+When a model hits rate limits, the system automatically:
+1. Retries the same model with exponential backoff (2s, 5s, 10s delays)
+2. Falls back to alternative models if retries fail
+3. Provides user-friendly error messages
+
+```python:app.py:34-43
+# Rate limit handling configuration
+MAX_RETRIES = 3
+RETRY_DELAYS = [2, 5, 10]  # Exponential backoff delays in seconds
+
+# Fallback models when primary model is rate-limited (in order of preference)
+FALLBACK_MODELS = [
+    "google/gemma-3-27b-it:free",
+    "google/gemma-3-4b-it:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "meta-llama/llama-3.1-405b-instruct:free",
+]
+```
+
+#### Fallback Flow
+
+```python:app.py:220-274
+for model_index, current_model in enumerate(models_to_try):
+    app.logger.info(f"Trying model: {current_model} (attempt {model_index + 1}/{len(models_to_try)})")
+    
+    # Retry loop for current model
+    for retry in range(MAX_RETRIES):
+        response, error_info = _make_api_request(messages, current_model)
+        
+        if response is not None:
+            # Success! Return the response
+            data = response.json()
+            content = data["choices"][0]["message"]["content"]
+            return (content, False)
+        
+        # Handle error with exponential backoff
+        if error_info['is_rate_limit']:
+            if retry < MAX_RETRIES - 1:
+                delay = RETRY_DELAYS[min(retry, len(RETRY_DELAYS) - 1)]
+                time.sleep(delay)
+            else:
+                # Try next model
+                break
+```
+
+### Server-Sent Events (SSE) Streaming
+
+Real-time streaming provides immediate feedback to users:
+
+```python:app.py:479-532
+@app.route('/api/chat/stream', methods=['POST'])
+def api_chat_stream():
+    """
+    Handle streaming chat messages using Server-Sent Events.
+    Returns: SSE stream with content chunks
+    """
+    # Build messages and get figure data
+    messages = [{"role": "system", "content": system_prompt}]
+    messages.extend(history[-MAX_HISTORY:])
+    messages.append({"role": "user", "content": user_message})
+    
+    # Return streaming response
+    return Response(
+        stream_llm(messages, model),
+        mimetype='text/event-stream',
+        headers={
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'X-Accel-Buffering': 'no'
+        }
+    )
+```
+
+**SSE Format**
+- Content chunks: `data: {"content": "text"}`
+- Completion: `data: {"done": true}`
+- Errors: `data: {"error": "message", "rate_limited": true}`
+
+### Conversation Management
+
+**History Limiting**
+To optimize API costs and response times:
+- Maximum 20 messages kept in context window
+- Older messages are automatically pruned
+
+```python:app.py:31
+MAX_HISTORY = 20  # Maximum number of messages to keep in history
+```
+
+## Frontend Architecture
+
+### Technology Stack
+
+- **Vanilla JavaScript** - No framework dependencies, pure ES6+
+- **Modern CSS** - Custom properties, Grid, Flexbox
+- **LocalStorage** - Client-side conversation persistence
+- **Responsive Design** - Mobile-first approach
+
+### Key Features
+
+1. **Real-time Streaming** - SSE EventSource API for live responses
+2. **Conversation Management** - Save, resume, export conversations
+3. **AI-Generated Suggestions** - Contextual follow-up questions
+4. **Dinner Party Mode** - Multi-figure conversations with dynamic parsing
+
+## Historical Figure System
+
+### Figure Prompt Template
+
+Each historical figure uses a structured system prompt:
+
+```python:figures.py:5-30
+FIGURE_PROMPT_TEMPLATE = """You are {name}, {title}, who lived from {birth_year} to {death_year}.
+
+PERSONALITY & SPEAKING STYLE:
+{personality}
+
+KNOWN BELIEFS & VALUES:
+{beliefs}
+
+HISTORICAL CONTEXT:
+- You have knowledge of events up to {death_year}
+- You do NOT know about anything that happened after your death
+- When asked about modern concepts, react with genuine curiosity appropriate to your era
+
+ROLEPLAY RULES:
+- Stay in character at all times
+- Use speech patterns and vocabulary appropriate to your era and background
+- Reference your real historical experiences, works, and relationships
+- Express your documented opinions and beliefs authentically
+- If asked about something after your time, express confusion or ask the user to explain
+
+CONVERSATION STYLE:
+- Be engaging and conversational, not lecturing
+- Ask the user questions back to create dialogue
+- Show your personality through your responses
+- Keep responses to 2-3 paragraphs maximum unless asked for detail
+"""
+```
+
+### Figure Data Structure
+
+Each figure in `HISTORICAL_FIGURES` dictionary contains:
+- `id` - Unique identifier
+- `name` - Full name
+- `title` - Role/profession
+- `birth_year` / `death_year` - Lifespan for era-appropriate knowledge
+- `era` - Historical period
+- `personality` - Speaking style and character traits
+- `beliefs` - Core values and documented opinions
+- `tagline` - Brief descriptor
+- `starter_questions` - Conversation prompts
+
+## API Endpoints
+
+### Core Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/` | Serve main HTML page |
+| `GET` | `/api/figures` | Return list of all historical figures |
+| `GET` | `/api/figures/<id>` | Return single figure data |
+| `GET` | `/api/models` | List available AI models |
+| `GET` | `/api/health` | Health check endpoint |
+| `POST` | `/api/chat` | Send message, receive AI response |
+| `POST` | `/api/chat/stream` | Streaming chat endpoint (SSE) |
+| `POST` | `/api/dinner-party/chat` | Multi-figure conversation |
+| `POST` | `/api/suggestions` | Get contextual follow-up questions |
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:5000/api/chat/stream \
+  -H "Content-Type: application/json" \
+  -d '{
+    "figure_id": "einstein",
+    "message": "What is your theory of relativity?",
+    "history": [],
+    "model": "google/gemma-3-12b-it:free"
+  }'
+```
+
+## Deployment
+
+### Production Server
+
+**Gunicorn** with **gevent** workers for async support:
+
+```bash
+gunicorn --worker-class gevent --workers 2 --bind 0.0.0.0:$PORT app:app
+```
+
+### Environment Configuration
+
+Required environment variables:
+- `OPENROUTER_API_KEY` - API key from OpenRouter
+- `PORT` - Server port (default: 5000)
+- `FLASK_DEBUG` - Enable debug mode (default: false)
+
+### Platform Support
+
+- **Railway.app** (Recommended) - Auto-detected Flask app
+- **Fly.io** - Configuration included
+- **Heroku** - Standard Python buildpack
+- **Render** - Gunicorn detected automatically
+- **AWS/GCP** - Container or serverless deployment
+
+## Performance Optimizations
+
+1. **Streaming Responses** - Reduces perceived latency
+2. **Model Fallback** - Ensures service availability
+3. **History Limiting** - Controls API costs and response times
+4. **Fast Suggestion Model** - Uses lightweight model for quick suggestions
+5. **Client-side Caching** - LocalStorage for conversation history
+
+## Security Considerations
+
+- API key stored in environment variables
+- No client-side API key exposure
+- Input validation on all endpoints
+- Rate limiting handled by OpenRouter
+- CORS headers configured for production

@@ -1,0 +1,205 @@
+---
+title: 'Figures API'
+description: 'Retrieve information about available historical figures'
+---
+
+## GET /api/figures
+
+Retrieve a list of all available historical figures.
+
+### Request
+
+No parameters required.
+
+```bash
+curl http://localhost:5000/api/figures
+```
+
+### Response
+
+<ResponseField name="figures" type="array">
+  Array of historical figure objects
+  
+  <Expandable title="properties">
+    <ResponseField name="id" type="string">
+      Unique identifier for the figure (e.g., "einstein", "cleopatra")
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Full name of the historical figure
+    </ResponseField>
+    
+    <ResponseField name="title" type="string">
+      Professional title or description
+    </ResponseField>
+    
+    <ResponseField name="birth_year" type="integer">
+      Year of birth (negative for BCE)
+    </ResponseField>
+    
+    <ResponseField name="death_year" type="integer">
+      Year of death (negative for BCE)
+    </ResponseField>
+    
+    <ResponseField name="era" type="string">
+      Historical era (e.g., "Modern Era", "Ancient World", "Renaissance")
+    </ResponseField>
+    
+    <ResponseField name="tagline" type="string">
+      Brief description or accomplishment summary
+    </ResponseField>
+    
+    <ResponseField name="starter_questions" type="array">
+      Array of suggested questions to ask the figure
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "figures": [
+    {
+      "id": "einstein",
+      "name": "Albert Einstein",
+      "title": "Theoretical Physicist",
+      "birth_year": 1879,
+      "death_year": 1955,
+      "era": "Modern Era",
+      "tagline": "Father of Relativity, Nobel Laureate",
+      "starter_questions": [
+        "What inspired your theory of relativity?",
+        "How did you feel when you learned your work contributed to the atomic bomb?",
+        "Did you really fail math class, and what was school like for you?"
+      ]
+    },
+    {
+      "id": "cleopatra",
+      "name": "Cleopatra VII",
+      "title": "Queen of Egypt, Last Pharaoh of the Ptolemaic Kingdom",
+      "birth_year": -69,
+      "death_year": -30,
+      "era": "Ancient World",
+      "tagline": "Last Pharaoh of Egypt, Legendary Queen",
+      "starter_questions": [
+        "What was it like ruling the most powerful kingdom of your time?",
+        "Tell me about your relationship with Julius Caesar and Mark Antony."
+      ]
+    }
+  ]
+}
+```
+
+---
+
+## GET /api/figures/\{id\}
+
+Retrieve detailed information about a specific historical figure.
+
+### Request
+
+<ParamField path="id" type="string" required>
+  The unique identifier of the figure (e.g., "einstein", "cleopatra", "davinci")
+</ParamField>
+
+```bash
+curl http://localhost:5000/api/figures/einstein
+```
+
+### Response
+
+<ResponseField name="figure" type="object">
+  Historical figure object with all details
+  
+  <Expandable title="properties">
+    <ResponseField name="id" type="string">
+      Unique identifier for the figure
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Full name of the historical figure
+    </ResponseField>
+    
+    <ResponseField name="title" type="string">
+      Professional title or description
+    </ResponseField>
+    
+    <ResponseField name="birth_year" type="integer">
+      Year of birth (negative for BCE)
+    </ResponseField>
+    
+    <ResponseField name="death_year" type="integer">
+      Year of death (negative for BCE)
+    </ResponseField>
+    
+    <ResponseField name="era" type="string">
+      Historical era
+    </ResponseField>
+    
+    <ResponseField name="personality" type="string">
+      Description of personality traits and speaking style
+    </ResponseField>
+    
+    <ResponseField name="beliefs" type="string">
+      Known beliefs, values, and philosophies
+    </ResponseField>
+    
+    <ResponseField name="tagline" type="string">
+      Brief description or accomplishment summary
+    </ResponseField>
+    
+    <ResponseField name="starter_questions" type="array">
+      Array of suggested questions to ask the figure
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "figure": {
+    "id": "einstein",
+    "name": "Albert Einstein",
+    "title": "Theoretical Physicist",
+    "birth_year": 1879,
+    "death_year": 1955,
+    "era": "Modern Era",
+    "personality": "Curious, witty, humble yet confident. Speaks with a gentle German accent influence. Loves thought experiments and uses analogies to explain complex ideas.",
+    "beliefs": "Pacifist who opposed war and nationalism. Believer in cosmic religious feeling and the harmony of natural law. Skeptical of quantum randomness ('God does not play dice').",
+    "tagline": "Father of Relativity, Nobel Laureate",
+    "starter_questions": [
+      "What inspired your theory of relativity?",
+      "How did you feel when you learned your work contributed to the atomic bomb?",
+      "Did you really fail math class, and what was school like for you?",
+      "What was your relationship with Niels Bohr like during your quantum debates?",
+      "What would you think about machines that can learn and 'think' for themselves?"
+    ]
+  }
+}
+```
+
+### Error Response
+
+```json
+{
+  "error": "Figure not found"
+}
+```
+
+**Status Code:** `404`
+
+---
+
+## Available Figures
+
+The API currently supports the following historical figures:
+
+- **einstein** - Albert Einstein (1879-1955)
+- **cleopatra** - Cleopatra VII (69 BCE - 30 BCE)
+- **davinci** - Leonardo da Vinci (1452-1519)
+- **lincoln** - Abraham Lincoln (1809-1865)
+- And more...
+
+Use the `GET /api/figures` endpoint to retrieve the complete list.
